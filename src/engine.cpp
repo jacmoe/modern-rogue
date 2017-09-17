@@ -18,7 +18,7 @@
 #include "map.hpp"
 #include "engine.hpp"
 
-Engine::Engine() {
+Engine::Engine() : fovRadius(10), computeFOV(true) {
     TCODConsole::initRoot(80, 50, "modern-rogue", false);
     player = new Actor(40, 25, '@', TCODColor::white);
     actors.push(player);
@@ -37,25 +37,33 @@ void Engine::update() {
         case TCODK_UP :
             if (!map->isWall(player->x, player->y - 1)) {
                 player->y--;
+                computeFOV = true;
             }
-        break;
+            break;
         case TCODK_DOWN :
             if (!map->isWall(player->x, player->y + 1)) {
                 player->y++;
+                computeFOV = true;
             }
-        break;
+            break;
         case TCODK_LEFT :
             if (!map->isWall(player->x - 1, player->y)) {
                 player->x--;
+                computeFOV = true;
             }
-        break;
+            break;
         case TCODK_RIGHT :
             if (!map->isWall(player->x + 1, player->y)) {
                 player->x++;
+                computeFOV = true;
             }
-        break;
+            break;
         default:
-        break;
+            break;
+    }
+    if (computeFOV) {
+        map->computeFOV();
+        computeFOV = false;
     }
 }
 
@@ -64,6 +72,9 @@ void Engine::render() {
     map->render();
 
     for (Actor** iterator = actors.begin(); iterator != actors.end(); iterator++) {
-        (*iterator)->render();
+        Actor* actor = *iterator;
+        if (map->isInFOV(actor->x, actor->y)) {
+            actor->render();
+        }
     }
 }

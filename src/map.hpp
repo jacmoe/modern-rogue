@@ -16,8 +16,8 @@
 **********************************************************************************************************/
 
 struct Tile {
-    bool canWalk;   // can we walk through this tile?
-    Tile() : canWalk(false) {}
+    bool explored;   // has the player already seen this tile?
+    Tile() : explored(false) {}
 };
 
 class Map {
@@ -28,10 +28,14 @@ public:
     ~Map();
 
     bool isWall(int x, int y) const;
+    bool isInFOV(int x, int y) const;
+    void computeFOV();
+    bool isExplored(int x, int y) const;
     void render() const;
 
 protected:
     Tile* tiles;
+    TCODMap* map;
     friend class BspListener;
 
     void dig(int x1, int y1, int x2, int y2);
