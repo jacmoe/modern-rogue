@@ -1,5 +1,9 @@
 
-add_executable(mrogue main.cpp)
+add_executable(mrogue main.cpp
+  actor.cpp
+  map.cpp
+  engine.cpp
+)
 
 find_package (Libtcod REQUIRED)
 find_package (Libtcodxx REQUIRED)
