@@ -19,8 +19,11 @@ class Actor {
 public:
     int x, y;   // position on the map
     int ch;     // ascii code
+    const char* name;   // the actor's name
     TCODColor col;
 
-    Actor(int x, int y, int ch, const TCODColor &col);
+    Actor(int x, int y, int ch, const char* name, const TCODColor &col);
+    void update();
+    bool moveOrAttack(int x, int y);
     void render() const;
 };

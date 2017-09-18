@@ -28,10 +28,12 @@ public:
     ~Map();
 
     bool isWall(int x, int y) const;
+    bool canWalk(int x, int y) const;
     bool isInFOV(int x, int y) const;
-    void computeFOV();
+    void computeFov();
     bool isExplored(int x, int y) const;
     void render() const;
+    void addMonster(int x, int y);
 
 protected:
     Tile* tiles;
