@@ -20,6 +20,7 @@ add_executable(mrogue main.cpp
   attacker.cpp
   destructible.cpp
   engine.cpp
+  gui.cpp
   map.cpp
 )
 

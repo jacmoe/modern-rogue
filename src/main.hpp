@@ -8,3 +8,4 @@ class Actor;
 #include "actor.hpp"
 #include "map.hpp"
 #include "engine.hpp"
+#include "gui.hpp"
