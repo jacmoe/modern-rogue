@@ -30,7 +30,8 @@ public:
         IDLE,
         NEW_TURN,
         VICTORY,
-        DEFEAT
+        DEFEAT,
+        EXIT
     } gameStatus;
 
     Engine(int screenWidth, int screenHeight);

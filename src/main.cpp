@@ -24,7 +24,8 @@ int main() {
     int playerx {40};
     int playery {25};
     TCODConsole::initRoot(80,50,"libtcod C++ tutorial",false);
-    while ( !TCODConsole::isWindowClosed() ) {
+    TCODSystem::setFps(20); // limit frames per second to 20
+    while ( (!TCODConsole::isWindowClosed()) && (engine.gameStatus != engine.EXIT) ) {
         engine.update();
         engine.render();
         TCODConsole::flush();
