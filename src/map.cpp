@@ -14,9 +14,7 @@
 *
 **********************************************************************************************************/
 #include <libtcod/libtcod.hpp>
-#include "map.hpp"
-#include "actor.hpp"
-#include "engine.hpp"
+#include "main.hpp"
 
 static const int ROOM_MAX_SIZE = 12;
 static const int ROOM_MIN_SIZE = 6;
@@ -91,7 +89,7 @@ bool Map::isExplored(int x, int y) const {
     return tiles[x + y * width].explored;
 }
 
-bool Map::isInFOV(int x, int y) const {
+bool Map::isInFov(int x, int y) const {
     if (map->isInFov(x, y)) {
         tiles[x + y * width].explored = true;
         return true;
@@ -145,10 +143,18 @@ void Map::addMonster(int x, int y) {
     TCODRandom* rng = TCODRandom::getInstance();
     if (rng->getInt(0, 100) < 80) {
         // create an orc
-        engine.actors.push(new Actor(x, y, 'o', "orc", TCODColor::desaturatedGreen));
+        Actor* orc = new Actor(x, y, 'o', "orc", TCODColor::desaturatedGreen);
+        orc->destructible = new MonsterDestructible(10, 0, "dead orc");
+        orc->attacker = new Attacker(3);
+        orc->ai = new MonsterAi();
+        engine.actors.push(orc);
     } else {
         // create a troll
-        engine.actors.push(new Actor(x, y, 'T', "troll", TCODColor::darkerGreen));
+        Actor* troll = new Actor(x, y, 'T', "troll", TCODColor::darkerGreen);
+        troll->destructible = new MonsterDestructible(16, 1, "troll carcass");
+        troll->attacker = new Attacker(4);
+        troll->ai = new MonsterAi();
+        engine.actors.push(troll);
     }
 }
 
@@ -160,7 +166,7 @@ void Map::render() const {
 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
-            if (isInFOV(x, y)) {
+            if (isInFov(x, y)) {
                 TCODConsole::root->setCharBackground(x, y, isWall(x, y) ? lightWall : lightGround);
             } else if (isExplored(x, y)) {
                 TCODConsole::root->setCharBackground(x, y, isWall(x, y) ? darkWall : darkGround);

@@ -29,7 +29,7 @@ public:
 
     bool isWall(int x, int y) const;
     bool canWalk(int x, int y) const;
-    bool isInFOV(int x, int y) const;
+    bool isInFov(int x, int y) const;
     void computeFov();
     bool isExplored(int x, int y) const;
     void render() const;

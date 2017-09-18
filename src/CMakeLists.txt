@@ -16,8 +16,11 @@
 
 add_executable(mrogue main.cpp
   actor.cpp
-  map.cpp
+  ai.cpp
+  attacker.cpp
+  destructible.cpp
   engine.cpp
+  map.cpp
 )
 
 find_package (Libtcod REQUIRED)

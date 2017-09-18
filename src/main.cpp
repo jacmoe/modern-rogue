@@ -18,7 +18,7 @@
 #include "map.hpp"
 #include "engine.hpp"
 
-Engine engine;
+Engine engine(80, 50);
 
 int main() {
     int playerx {40};

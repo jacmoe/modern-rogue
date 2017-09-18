@@ -13,32 +13,15 @@
 * Copyright 2017 Jacob Moen
 *
 **********************************************************************************************************/
-#include <iostream>
-#include <libtcod/libtcod.hpp>
-#include "actor.hpp"
-#include "map.hpp"
-#include "engine.hpp"
+#include "main.hpp"
+
 
 Actor::Actor(int x, int y, int ch, const char* name, const TCODColor &col) : 
-    x(x), y(y), ch(ch), name(name), col(col) {
+    x(x), y(y), ch(ch), name(name), col(col), blocks(true), attacker(nullptr), destructible(nullptr), ai(nullptr) {
 }
 
 void Actor::update() {
-    std::cout << "The " << name << " growls!" << std::endl;
-}
-
-bool Actor::moveOrAttack(int x, int y) {
-    if (engine.map->isWall(x, y)) return false;
-    for (Actor** iterator = engine.actors.begin(); iterator != engine.actors.end(); iterator++) {
-        Actor* actor = *iterator;
-        if (actor->x == x && actor->y == y) {
-            std::cout << "The " << actor->name << " laughs at your puny efforts to attack him!" << std::endl;
-            return false;
-        }
-    }
-    this->x = x;
-    this->y = y;
-    return true;
+    if (ai) ai->update(this);
 }
 
 void Actor::render() const {
