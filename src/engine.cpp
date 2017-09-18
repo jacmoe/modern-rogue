@@ -25,6 +25,7 @@ Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),fovRadiu
     actors.push(player);
 	map = new Map(80,45);
 	gui = new Gui();
+    gui->message(TCODColor::red, "Welcome stranger!\nPrepare to perish in the Tombs of the Ancient Kings.");
 }
 
 Engine::~Engine() {
@@ -36,7 +37,7 @@ Engine::~Engine() {
 void Engine::update() {
 	if ( gameStatus == STARTUP ) map->computeFov();
    	gameStatus=IDLE;
-	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS,&lastKey,NULL);
+	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
 	if (lastKey.vk == TCODK_ESCAPE) gameStatus = EXIT;
     player->update();
     if ( gameStatus == NEW_TURN ) {

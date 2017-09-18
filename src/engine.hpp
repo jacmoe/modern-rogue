@@ -27,7 +27,8 @@ public:
     int screenHeight;
     Gui* gui;
     TCOD_key_t lastKey;
-
+	TCOD_mouse_t mouse;
+    
     enum GameStatus {
         STARTUP,
         IDLE,
