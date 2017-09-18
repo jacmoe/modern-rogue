@@ -17,7 +17,16 @@
 
 
 Actor::Actor(int x, int y, int ch, const char* name, const TCODColor &col) : 
-    x(x), y(y), ch(ch), name(name), col(col), blocks(true), attacker(nullptr), destructible(nullptr), ai(nullptr) {
+    x(x), y(y), ch(ch), name(name), col(col), blocks(true), attacker(nullptr), destructible(nullptr), ai(nullptr),
+    pickable(nullptr), container(nullptr) {
+}
+
+Actor::~Actor() {
+    if (attacker) delete attacker;
+    if (destructible) delete destructible;
+    if (ai) delete ai;
+    if (pickable) delete pickable;
+    if (container) delete container;
 }
 
 void Actor::update() {

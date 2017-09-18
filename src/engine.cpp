@@ -21,7 +21,8 @@ Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),fovRadiu
     player = new Actor(40,25,'@',"player",TCODColor::white);
     player->destructible=new PlayerDestructible(30,2,"your cadaver");
     player->attacker=new Attacker(5);
-    player->ai = new PlayerAi();
+	player->ai = new PlayerAi();
+	player->container = new Container(26);
     actors.push(player);
 	map = new Map(80,45);
 	gui = new Gui();

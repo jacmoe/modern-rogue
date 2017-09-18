@@ -1,4 +1,3 @@
-#include <iostream>
 #include "main.hpp"
 
 Destructible::Destructible(float maxHp, float defense, const char* corpseName) :
@@ -16,6 +15,15 @@ float Destructible::takeDamage(Actor* owner, float damage) {
         damage = 0;
     }
     return damage;
+}
+
+float Destructible::heal(float amount) {
+    hp += amount;
+    if (hp > maxHp) {
+        amount -= hp - maxHp;
+        hp = maxHp;
+    }
+    return amount;
 }
 
 void Destructible::die(Actor* owner) {
@@ -39,12 +47,12 @@ PlayerDestructible::PlayerDestructible(float maxHp, float defense, const char* c
 void MonsterDestructible::die(Actor* owner) {
     // transform it into a nasty corpse!
     // it doesn't block, can't be attacked and doesn't move
-    std::cout << owner->name << " is dead" << std::endl;
+    engine.gui->message(TCODColor::red, "%s is dead", owner->name);
     Destructible::die(owner);
 }
 
 void PlayerDestructible::die(Actor* owner) {
-    std::cout << "You died" << std::endl;
+    engine.gui->message(TCODColor::red, "You died");
     Destructible::die(owner);
     engine.gameStatus = Engine::DEFEAT;
 }

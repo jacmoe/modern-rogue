@@ -34,6 +34,7 @@ public:
     bool isExplored(int x, int y) const;
     void render() const;
     void addMonster(int x, int y);
+    void addItem(int x, int y);
 
 protected:
     Tile* tiles;
