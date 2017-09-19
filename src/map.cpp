@@ -154,10 +154,21 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2) {
 }
 
 void Map::addItem(int x, int y) {
-    Actor* healthPotion = new Actor(x, y, '!', "health potion", TCODColor::violet);
-    healthPotion->blocks = false;
-    healthPotion->pickable = new Healer(4);
-    engine.actors.push(healthPotion);
+    TCODRandom* rng = TCODRandom::getInstance();
+    int dice = rng->getInt(0,100);
+    if (dice < 70) {
+        // create a health potion
+        Actor* healthPotion = new Actor(x, y, '!', "health potion", TCODColor::violet);
+        healthPotion->blocks = false;
+        healthPotion->pickable = new Healer(4);
+        engine.actors.push(healthPotion);
+    } else if (dice < 70+10) {
+        // create a scroll of lightning bolt 
+        Actor* scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt", TCODColor::lightYellow);
+        scrollOfLightningBolt->blocks = false;
+        scrollOfLightningBolt->pickable = new LightningBolt(5, 20);
+        engine.actors.push(scrollOfLightningBolt);
+    }
 }
 
 void Map::addMonster(int x, int y) {

@@ -15,16 +15,15 @@
 **********************************************************************************************************/
 #include "main.hpp"
 
-Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),fovRadius(10),
-	screenWidth(screenWidth),screenHeight(screenHeight) {
-    TCODConsole::initRoot(screenWidth,screenHeight,"libtcod C++ tutorial",false);
-    player = new Actor(40,25,'@',"player",TCODColor::white);
-    player->destructible=new PlayerDestructible(30,2,"your cadaver");
-    player->attacker=new Attacker(5);
+Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP), fovRadius(10), screenWidth(screenWidth), screenHeight(screenHeight) {
+    TCODConsole::initRoot(screenWidth,screenHeight,"Modern Rogue",false);
+    player = new Actor(40, 25, '@', "player", TCODColor::white);
+    player->destructible = new PlayerDestructible(30, 2, "your cadaver");
+    player->attacker = new Attacker(5);
 	player->ai = new PlayerAi();
 	player->container = new Container(26);
     actors.push(player);
-	map = new Map(80,45);
+	map = new Map(80, 45);
 	gui = new Gui();
     gui->message(TCODColor::red, "Welcome stranger!\nPrepare to perish in the Tombs of the Ancient Kings.");
 }
@@ -74,4 +73,20 @@ void Engine::render() {
 void Engine::sendToBack(Actor *actor) {
 	actors.remove(actor);
 	actors.insertBefore(actor,0);
+}
+
+Actor* Engine::getClosestMonster(int x, int y, float range) const {
+	Actor* closest = nullptr;
+	float bestDistance = 1E6f;
+	for (Actor** iterator = actors.begin(); iterator != actors.end(); iterator++) {
+		Actor* actor = *iterator;
+		if (actor != player && actor->destructible && !actor->destructible->isDead()) {
+			float distance = actor->getDistance(x, y);
+			if (distance < bestDistance && (distance <= range || range == 0.0f)) {
+				bestDistance = distance;
+				closest = actor;
+			}
+		}
+	}
+	return closest;
 }

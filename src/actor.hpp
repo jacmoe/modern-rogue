@@ -15,6 +15,8 @@
 *
 **********************************************************************************************************/
 
+#include <libtcod/libtcod.hpp>
+
 class Attacker;
 class Destructible;
 class Ai;
@@ -38,4 +40,5 @@ public:
     ~Actor();
     void update();
     void render() const;
+    float getDistance(int cx, int cy) const;
 };

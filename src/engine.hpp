@@ -16,6 +16,7 @@
 **********************************************************************************************************/
 
 class Gui;
+class Actor;
 
 class Engine {
 public:
@@ -43,6 +44,7 @@ public:
     void update();
     void render();
     void sendToBack(Actor* actor);
+    Actor* getClosestMonster(int x, int y, float range) const;
 };
 
 extern Engine engine;

@@ -27,6 +27,12 @@ add_executable(mrogue main.cpp
   pickable.cpp
 )
 
+set_target_properties(mrogue PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
+
 find_package (Libtcod REQUIRED)
 find_package (Libtcodxx REQUIRED)
 
