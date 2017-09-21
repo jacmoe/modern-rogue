@@ -1,41 +1,46 @@
-#pragma once
-/*********************************************************************************************************
-* This file is part of the
-*
-* ███╗   ███╗ ██████╗ ██████╗ ███████╗██████╗ ███╗   ██╗      ██████╗  ██████╗  ██████╗ ██╗   ██╗███████╗
-* ████╗ ████║██╔═══██╗██╔══██╗██╔════╝██╔══██╗████╗  ██║      ██╔══██╗██╔═══██╗██╔════╝ ██║   ██║██╔════╝
-* ██╔████╔██║██║   ██║██║  ██║█████╗  ██████╔╝██╔██╗ ██║█████╗██████╔╝██║   ██║██║  ███╗██║   ██║█████╗  
-* ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ██╔══██╗██║╚██╗██║╚════╝██╔══██╗██║   ██║██║   ██║██║   ██║██╔══╝  
-* ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗██║  ██║██║ ╚████║      ██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝███████╗
-* ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝      ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝
-*
-* project : https://github.com/jacmoe/modern-rogue
-*
-* Copyright 2017 Jacob Moen
-*
-**********************************************************************************************************/
-
-#include <libtcod/libtcod.hpp>
-
-class Gui {
+class Menu {
 public :
-    Gui();
-    ~Gui();
-    void render();
-    void message(const TCODColor &col, const char *text, ...);
-
+	enum MenuItemCode {
+		NONE,
+		NEW_GAME,
+		CONTINUE,
+		EXIT
+	};
+	~Menu();
+	void clear();
+	void addItem(MenuItemCode code, const char *label);
+	MenuItemCode pick();
 protected :
-    TCODConsole *con;
-    struct Message {
-        char *text;
-        TCODColor col;
-        Message(const char *text, const TCODColor &col);
-        ~Message();
-    };
-    TCODList<Message *> log;
+	struct MenuItem {
+		MenuItemCode code;
+		const char *label;
+	};
+	TCODList<MenuItem *> items;
+};
 
-    void renderBar(int x, int y, int width, const char *name,
-    float value, float maxValue, const TCODColor &barColor,
-    const TCODColor &backColor);
-    void renderMouseLook();
+class Gui : public Persistent {
+public :
+	Menu menu;
+
+	Gui();
+	~Gui();
+	void render();
+	void message(const TCODColor &col, const char *text, ...);
+	void load(TCODZip &zip);
+	void save(TCODZip &zip);
+	void clear();
+protected :
+	TCODConsole *con;
+	struct Message {
+		char *text;
+		TCODColor col;
+		Message(const char *text, const TCODColor &col);
+		~Message();
+	};
+	TCODList<Message *> log;
+
+	void renderBar(int x, int y, int width, const char *name,
+		float value, float maxValue, const TCODColor &barColor,
+		const TCODColor &backColor);
+	void renderMouseLook();
 };

@@ -1,18 +1,4 @@
-/*********************************************************************************************************
-* This file is part of the
-*
-* ███╗   ███╗ ██████╗ ██████╗ ███████╗██████╗ ███╗   ██╗      ██████╗  ██████╗  ██████╗ ██╗   ██╗███████╗
-* ████╗ ████║██╔═══██╗██╔══██╗██╔════╝██╔══██╗████╗  ██║      ██╔══██╗██╔═══██╗██╔════╝ ██║   ██║██╔════╝
-* ██╔████╔██║██║   ██║██║  ██║█████╗  ██████╔╝██╔██╗ ██║█████╗██████╔╝██║   ██║██║  ███╗██║   ██║█████╗  
-* ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ██╔══██╗██║╚██╗██║╚════╝██╔══██╗██║   ██║██║   ██║██║   ██║██╔══╝  
-* ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗██║  ██║██║ ╚████║      ██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝███████╗
-* ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝      ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝
-*
-* project : https://github.com/jacmoe/modern-rogue
-*
-* Copyright 2017 Jacob Moen
-*
-**********************************************************************************************************/
+#include <stdio.h>
 #include <math.h>
 #include "main.hpp"
 
@@ -60,6 +46,34 @@ void MonsterAi::moveOrAttack(Actor *owner, int targetx, int targety) {
 	}
 }
 
+ConfusedMonsterAi::ConfusedMonsterAi(int nbTurns, Ai *oldAi) 
+	: nbTurns(nbTurns),oldAi(oldAi) {
+}
+
+void ConfusedMonsterAi::update(Actor *owner) {
+	TCODRandom *rng=TCODRandom::getInstance();
+	int dx=rng->getInt(-1,1);
+	int dy=rng->getInt(-1,1);
+	if ( dx != 0 || dy != 0 ) {
+		int destx=owner->x+dx;
+		int desty=owner->y+dy;
+		if ( engine.map->canWalk(destx, desty) ) {
+			owner->x = destx;
+			owner->y = desty;
+		} else {
+			Actor *actor=engine.getActor(destx, desty);
+			if ( actor ) {
+				owner->attacker->attack(owner, actor);
+			}
+		}
+	}
+	nbTurns--;
+	if ( nbTurns == 0 ) {
+		owner->ai = oldAi;
+		delete this;
+	}
+}
+
 void PlayerAi::update(Actor *owner) {
     if ( owner->destructible && owner->destructible->isDead() ) {
     	return;
@@ -97,9 +111,11 @@ bool PlayerAi::moveOrAttack(Actor *owner, int targetx,int targety) {
 	for (Actor **iterator=engine.actors.begin();
 		iterator != engine.actors.end(); iterator++) {
 		Actor *actor=*iterator;
-		bool corpseOrItem = (actor->destructible && actor->destructible->isDead()) || actor->pickable;
-		if (corpseOrItem && actor->x == targetx && actor->y == targety) {
-			engine.gui->message(TCODColor::lightGrey, "There's a %s here", actor->name);
+		bool corpseOrItem=(actor->destructible && actor->destructible->isDead())
+			|| actor->pickable;
+		if ( corpseOrItem
+			 && actor->x == targetx && actor->y == targety ) {
+			engine.gui->message(TCODColor::lightGrey,"There's a %s here.",actor->name);
 		}
 	}
 	owner->x=targetx;
@@ -107,8 +123,17 @@ bool PlayerAi::moveOrAttack(Actor *owner, int targetx,int targety) {
 	return true;
 }
 
-void PlayerAi::handleActionKey(Actor* owner, int ascii) {
+void PlayerAi::handleActionKey(Actor *owner, int ascii) {
 	switch(ascii) {
+		case 'd' : // drop item 
+		{
+			Actor *actor=choseFromInventory(owner);
+			if ( actor ) {
+				actor->pickable->drop(actor,owner);
+				engine.gameStatus=Engine::NEW_TURN;
+			}			
+		}
+		break;
 		case 'g' : // pickup item
 		{
 			bool found=false;
@@ -135,7 +160,7 @@ void PlayerAi::handleActionKey(Actor* owner, int ascii) {
 		break;
 		case 'i' : // display inventory
 		{
-			Actor *actor=chooseFromInventory(owner);
+			Actor *actor=choseFromInventory(owner);
 			if ( actor ) {
 				actor->pickable->use(actor,owner);
 				engine.gameStatus=Engine::NEW_TURN;
@@ -145,7 +170,7 @@ void PlayerAi::handleActionKey(Actor* owner, int ascii) {
 	}
 }
 
-Actor* PlayerAi::chooseFromInventory(Actor* owner) {
+Actor *PlayerAi::choseFromInventory(Actor *owner) {
 	static const int INVENTORY_WIDTH=50;
 	static const int INVENTORY_HEIGHT=28;
 	static TCODConsole con(INVENTORY_WIDTH,INVENTORY_HEIGHT);
@@ -182,5 +207,5 @@ Actor* PlayerAi::chooseFromInventory(Actor* owner) {
 			return owner->container->inventory.get(actorIndex);
 		}
 	}
-	return nullptr;
+	return NULL;
 }

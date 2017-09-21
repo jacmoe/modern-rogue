@@ -24,6 +24,7 @@ add_executable(mrogue main.cpp
   engine.cpp
   gui.cpp
   map.cpp
+  persistent.cpp
   pickable.cpp
 )
 

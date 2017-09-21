@@ -1,34 +1,14 @@
-/*********************************************************************************************************
-* This file is part of the
-*
-* ███╗   ███╗ ██████╗ ██████╗ ███████╗██████╗ ███╗   ██╗      ██████╗  ██████╗  ██████╗ ██╗   ██╗███████╗
-* ████╗ ████║██╔═══██╗██╔══██╗██╔════╝██╔══██╗████╗  ██║      ██╔══██╗██╔═══██╗██╔════╝ ██║   ██║██╔════╝
-* ██╔████╔██║██║   ██║██║  ██║█████╗  ██████╔╝██╔██╗ ██║█████╗██████╔╝██║   ██║██║  ███╗██║   ██║█████╗  
-* ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  ██╔══██╗██║╚██╗██║╚════╝██╔══██╗██║   ██║██║   ██║██║   ██║██╔══╝  
-* ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗██║  ██║██║ ╚████║      ██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝███████╗
-* ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝      ╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝
-*
-* project : https://github.com/jacmoe/modern-rogue
-*
-* Copyright 2017 Jacob Moen
-*
-**********************************************************************************************************/
-#include <libtcod/libtcod.hpp>
-#include "actor.hpp"
-#include "map.hpp"
-#include "engine.hpp"
+#include "main.hpp"
 
-Engine engine(80, 50);
+Engine engine(80,50);
 
 int main() {
-    int playerx {40};
-    int playery {25};
-    TCODConsole::initRoot(80,50,"libtcod C++ tutorial",false);
-    TCODSystem::setFps(20); // limit frames per second to 20
-    while ( (!TCODConsole::isWindowClosed()) && (engine.gameStatus != engine.EXIT) ) {
-        engine.update();
-        engine.render();
-        TCODConsole::flush();
+	engine.load();
+    while ( !TCODConsole::isWindowClosed() ) {
+    	engine.update();
+    	engine.render();
+		TCODConsole::flush();    
     }
+    engine.save();
     return 0;
 }
