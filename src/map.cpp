@@ -79,7 +79,7 @@ void Map::addMonster(int x, int y) {
         // create an orc
         Actor *orc = new Actor(x,y,'o',"orc",
             TCODColor::desaturatedGreen);
-        orc->destructible = new MonsterDestructible(10,0,"dead orc");
+        orc->destructible = new MonsterDestructible(10,0,"dead orc",35);
         orc->attacker = new Attacker(3);
         orc->ai = new MonsterAi();
         engine.actors.push(orc);
@@ -87,7 +87,7 @@ void Map::addMonster(int x, int y) {
         // create a troll
         Actor *troll = new Actor(x,y,'T',"troll",
              TCODColor::darkerGreen);
-        troll->destructible = new MonsterDestructible(16,1,"troll carcass");
+        troll->destructible = new MonsterDestructible(16,1,"troll carcass",100);
         troll->attacker = new Attacker(4);
         troll->ai = new MonsterAi();
         engine.actors.push(troll);
@@ -132,7 +132,7 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors
     dig (x1,y1,x2,y2);
     if (!withActors) {
     	return;
-    }  
+    }      
     if ( first ) {
         // put the player in the first room
         engine.player->x=(x1+x2)/2;
@@ -159,6 +159,9 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors
 			}
 		    nbItems--;
 		}
+		// set stairs position
+		engine.stairs->x=(x1+x2)/2;
+		engine.stairs->y=(y1+y2)/2;
     }
 }
 

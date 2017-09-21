@@ -22,6 +22,7 @@ void Actor::load(TCODZip &zip) {
 	col=zip.getColor();
 	name=strdup(zip.getString());
 	blocks=zip.getInt();
+	fovOnly=zip.getInt();
 	bool hasAttacker=zip.getInt();
 	bool hasDestructible=zip.getInt();
 	bool hasAi=zip.getInt();
@@ -53,6 +54,7 @@ void Actor::save(TCODZip &zip) {
 	zip.putColor(&col);
 	zip.putString(name);
 	zip.putInt(blocks);
+	zip.putInt(fovOnly);
 	zip.putInt(attacker != NULL);
 	zip.putInt(destructible != NULL);
 	zip.putInt(ai != NULL);
@@ -89,6 +91,7 @@ void Destructible::load(TCODZip &zip) {
 	hp=zip.getFloat();
 	defense=zip.getFloat();
 	corpseName=strdup(zip.getString());
+	xp=zip.getInt();
 }
 
 void Destructible::save(TCODZip &zip) {
@@ -96,6 +99,7 @@ void Destructible::save(TCODZip &zip) {
 	zip.putFloat(hp);
 	zip.putFloat(defense);
 	zip.putString(corpseName);
+	zip.putInt(xp);
 }
 
 void PlayerDestructible::save(TCODZip &zip) {
@@ -112,7 +116,7 @@ Destructible *Destructible::create(TCODZip &zip) {
 	DestructibleType type=(DestructibleType)zip.getInt();
 	Destructible *destructible=NULL;
 	switch(type) {
-		case MONSTER : destructible=new MonsterDestructible(0,0,NULL); break;
+		case MONSTER : destructible=new MonsterDestructible(0,0,NULL,0); break;
 		case PLAYER : destructible=new PlayerDestructible(0,0,NULL); break;
 	}
 	destructible->load(zip);
@@ -148,10 +152,12 @@ void ConfusedMonsterAi::save(TCODZip &zip) {
 }
 
 void PlayerAi::load(TCODZip &zip) {
+	xpLevel=zip.getInt();
 }
 
 void PlayerAi::save(TCODZip &zip) {
 	zip.putInt(PLAYER);
+	zip.putInt(xpLevel);
 }
 
 Ai *Ai::create(TCODZip &zip) {
@@ -234,15 +240,22 @@ void Gui::save(TCODZip &zip) {
 	}
 }
 
-void Engine::load() {
+const int SAVEGAME_VERSION=0x1100;
+void Engine::load(bool pause) {
+	TCODZip zip;
 	engine.gui->menu.clear();
 	engine.gui->menu.addItem(Menu::NEW_GAME,"New game");
 	if ( TCODSystem::fileExists("game.sav")) {
-		engine.gui->menu.addItem(Menu::CONTINUE,"Continue");
+		zip.loadFromFile("game.sav");
+		int version = zip.getInt();
+		if ( version == SAVEGAME_VERSION ) {
+			engine.gui->menu.addItem(Menu::CONTINUE,"Continue");
+		}
 	}
 	engine.gui->menu.addItem(Menu::EXIT,"Exit");
 
-	Menu::MenuItemCode menuItem=engine.gui->menu.pick();
+	Menu::MenuItemCode menuItem=engine.gui->menu.pick(
+		pause ? Menu::PAUSE : Menu::MAIN);
 	if ( menuItem == Menu::EXIT || menuItem == Menu::NONE ) {
 		// Exit or window closed
 		exit(0);
@@ -251,11 +264,10 @@ void Engine::load() {
 		engine.term();
 		engine.init();
 	} else {
-		TCODZip zip;
 		// continue a saved game
 		engine.term();
-		zip.loadFromFile("game.sav");
 		// load the map
+		level=zip.getInt();
 		int width=zip.getInt();
 		int height=zip.getInt();
 		map = new Map(width,height);
@@ -264,6 +276,10 @@ void Engine::load() {
 		player=new Actor(0,0,0,NULL,TCODColor::white);
 		actors.push(player);
 		player->load(zip);
+		// the stairs
+		stairs=new Actor(0,0,0,NULL,TCODColor::white);
+		stairs->load(zip);
+		actors.push(stairs);			
 		// then all other actors
 		int nbActors=zip.getInt();
 		while ( nbActors > 0 ) {
@@ -276,7 +292,7 @@ void Engine::load() {
 		gui->load(zip);
 		// to force FOV recomputation
 		gameStatus=STARTUP;
-	}
+	}	
 }
 
 void Engine::save() {
@@ -284,16 +300,20 @@ void Engine::save() {
 		TCODSystem::deleteFile("game.sav");
 	} else {
 		TCODZip zip;
-		// save the map
+		zip.putInt(SAVEGAME_VERSION);
+		zip.putInt(level);
+		// save the map first
 		zip.putInt(map->width);
 		zip.putInt(map->height);
 		map->save(zip);
-		// save the player
+		// then the player
 		player->save(zip);
+		// then the stairs
+		stairs->save(zip);
 		// then all the other actors
-		zip.putInt(actors.size()-1);
+		zip.putInt(actors.size()-2);
 		for (Actor **it=actors.begin(); it!=actors.end(); it++) {
-			if ( *it != player ) {
+			if ( *it != player && *it != stairs ) {
 				(*it)->save(zip);
 			}
 		}

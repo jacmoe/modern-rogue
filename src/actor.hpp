@@ -5,6 +5,7 @@ public :
     TCODColor col; // color
 	const char *name; // the actor's name
 	bool blocks; // can we walk on this actor?
+	bool fovOnly; // only display when in fov
 	Attacker *attacker; // something that deals damages
 	Destructible *destructible; // something that can be damaged
 	Ai *ai; // something self-updating

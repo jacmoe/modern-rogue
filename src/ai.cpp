@@ -51,22 +51,24 @@ ConfusedMonsterAi::ConfusedMonsterAi(int nbTurns, Ai *oldAi)
 }
 
 void ConfusedMonsterAi::update(Actor *owner) {
-	TCODRandom *rng=TCODRandom::getInstance();
-	int dx=rng->getInt(-1,1);
-	int dy=rng->getInt(-1,1);
-	if ( dx != 0 || dy != 0 ) {
-		int destx=owner->x+dx;
-		int desty=owner->y+dy;
-		if ( engine.map->canWalk(destx, desty) ) {
-			owner->x = destx;
-			owner->y = desty;
-		} else {
-			Actor *actor=engine.getActor(destx, desty);
-			if ( actor ) {
-				owner->attacker->attack(owner, actor);
+	if ( !owner->destructible || ! owner->destructible->isDead() ) {
+		TCODRandom *rng=TCODRandom::getInstance();
+		int dx=rng->getInt(-1,1);
+		int dy=rng->getInt(-1,1);
+		if ( dx != 0 || dy != 0 ) {
+			int destx=owner->x+dx;
+			int desty=owner->y+dy;
+			if ( engine.map->canWalk(destx, desty) ) {
+				owner->x = destx;
+				owner->y = desty;
+			} else {
+				Actor *actor=engine.getActor(destx, desty);
+				if ( actor ) {
+					owner->attacker->attack(owner, actor);
+				}
 			}
 		}
-	}
+    }
 	nbTurns--;
 	if ( nbTurns == 0 ) {
 		owner->ai = oldAi;
@@ -74,16 +76,56 @@ void ConfusedMonsterAi::update(Actor *owner) {
 	}
 }
 
+PlayerAi::PlayerAi() : xpLevel(1) {
+}
+
+const int LEVEL_UP_BASE=200;
+const int LEVEL_UP_FACTOR=150;
+
+
+int PlayerAi::getNextLevelXp() {
+	return LEVEL_UP_BASE + xpLevel*LEVEL_UP_FACTOR;
+}
+
 void PlayerAi::update(Actor *owner) {
+	int levelUpXp = getNextLevelXp();
+	if ( owner->destructible->xp >= levelUpXp ) {
+		xpLevel++;
+		owner->destructible->xp -= levelUpXp;
+		engine.gui->message(TCODColor::yellow,"Your battle skills grow stronger! You reached level %d",xpLevel);
+		engine.gui->menu.clear();
+		engine.gui->menu.addItem(Menu::CONSTITUTION,"Constitution (+20HP)");
+		engine.gui->menu.addItem(Menu::STRENGTH,"Strength (+1 attack)");
+		engine.gui->menu.addItem(Menu::AGILITY,"Agility (+1 defense)");
+		Menu::MenuItemCode menuItem=engine.gui->menu.pick(Menu::PAUSE);
+		switch (menuItem) {
+			case Menu::CONSTITUTION :
+				owner->destructible->maxHp+=20;
+				owner->destructible->hp+=20;
+				break;
+			case Menu::STRENGTH :
+				owner->attacker->power += 1;
+				break;
+			case Menu::AGILITY :
+				owner->destructible->defense += 1;
+				break;
+			default:break;
+		}
+	}
     if ( owner->destructible && owner->destructible->isDead() ) {
     	return;
     }
 	int dx=0,dy=0;
 	switch(engine.lastKey.vk) {
-		case TCODK_UP : dy=-1; break;
-		case TCODK_DOWN : dy=1; break;
-		case TCODK_LEFT : dx=-1; break;
-		case TCODK_RIGHT : dx=1; break;
+		case TCODK_UP : case TCODK_KP8 : dy=-1; break;
+		case TCODK_DOWN : case TCODK_KP2 : dy=1; break;
+		case TCODK_LEFT : case TCODK_KP4 : dx=-1; break;
+		case TCODK_RIGHT : case TCODK_KP6 : dx=1; break;
+		case TCODK_KP7 : dy=dx=-1; break;
+		case TCODK_KP9 : dy=-1;dx=1; break;
+		case TCODK_KP1 : dx=-1;dy=1; break;
+		case TCODK_KP3 : dx=dy=1; break;
+		case TCODK_KP5 : engine.gameStatus=Engine::NEW_TURN; break;
 		case TCODK_CHAR : handleActionKey(owner, engine.lastKey.c); break;
         default:break;
     }
@@ -166,6 +208,13 @@ void PlayerAi::handleActionKey(Actor *owner, int ascii) {
 				engine.gameStatus=Engine::NEW_TURN;
 			}
 		}
+		break;
+		case '>' :
+			if ( engine.stairs->x == owner->x && engine.stairs->y == owner->y ) {
+				engine.nextLevel();
+			} else {
+				engine.gui->message(TCODColor::lightGrey,"There are no stairs here.");
+			}
 		break;
 	}
 }
