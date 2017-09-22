@@ -17,10 +17,9 @@
 #include <math.h>
 #include "main.hpp"
 
-Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
-	player(NULL),map(NULL),fovRadius(10),
-	screenWidth(screenWidth),screenHeight(screenHeight),level(1) {
-    TCODConsole::initRoot(screenWidth,screenHeight,"libtcod C++ tutorial",false);
+Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),  player(NULL), map(NULL), fovRadius(10),
+	screenWidth(screenWidth), screenHeight(screenHeight), level(1) {
+	TCODConsole::initRoot(screenWidth, screenHeight, "libtcod C++ tutorial", false);
     gui = new Gui();
 }
 
@@ -151,7 +150,8 @@ bool Engine::pickATile(int *x, int *y, float maxRange) {
 				return true;
 			}
 		} 
-		if (mouse.rbutton_pressed || lastKey.vk != TCODK_NONE) {
+		if (mouse.rbutton_pressed) {
+				gui->message(TCODColor::darkerCyan, "Cancelled ...");
 			return false;
 		}
 		TCODConsole::flush();
