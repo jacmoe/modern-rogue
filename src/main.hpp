@@ -15,7 +15,9 @@
 *
 **********************************************************************************************************/
 #include <libtcod/libtcod.hpp>
+
 class Actor;
+
 #include "persistent.hpp"
 #include "destructible.hpp"
 #include "attacker.hpp"

@@ -19,10 +19,17 @@
 #include <libtcod/libtcod.hpp>
 
 class Actor;
+
 class Ai;
+
 class Attacker;
+
 class Destructible;
+
 class Container;
+
 class Pickable;
+
 class Map;
+
 class Gui;
