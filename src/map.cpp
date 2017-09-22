@@ -15,6 +15,7 @@
 *
 **********************************************************************************************************/
 #include "main.hpp"
+#include <cmath>
 
 static const int ROOM_MAX_SIZE = 12;
 static const int ROOM_MIN_SIZE = 6;
@@ -55,14 +56,14 @@ public :
 };
 
 Map::Map(int width, int height)
-        :width(width), height(height)
+        :width(width), height(height), currentScentValue(SCENT_THRESHOLD)
 {
     seed = TCODRandom::getInstance()->getInt(0, 0x7FFFFFFF);
 }
 
 void Map::init(bool withActors)
 {
-    rng = new TCODRandom(seed, TCOD_RNG_CMWC);
+    rng = new TCODRandom(static_cast<uint32>(seed), TCOD_RNG_CMWC);
     tiles = new Tile[width*height];
     map = new TCODMap(width, height);
     TCODBsp bsp(0, 0, width, height);
@@ -237,6 +238,21 @@ void Map::computeFov()
 {
     map->computeFov(engine.player->x, engine.player->y,
             engine.fovRadius);
+    // update scent field
+    for (int x = 0; x<width; x++) {
+        for (int y = 0; y<height; y++) {
+            if (isInFov(x, y)) {
+                unsigned int oldScent = getScent(x, y);
+                int dx = x-engine.player->x;
+                int dy = y-engine.player->y;
+                long distance = (int) sqrt(dx*dx+dy*dy);
+                unsigned int newScent = static_cast<unsigned int>(currentScentValue-distance);
+                if (newScent>oldScent) {
+                    tiles[x+y*width].scent = newScent;
+                }
+            }
+        }
+    }
 }
 
 void Map::render() const
@@ -258,4 +274,8 @@ void Map::render() const
             }
         }
     }
+}
+unsigned int Map::getScent(int x, int y) const
+{
+    return tiles[x+y*width].scent;
 }

@@ -21,13 +21,15 @@
 
 struct Tile {
     bool explored; // has the player already seen this tile ?
+    unsigned int scent;
     Tile()
-            :explored(false) { }
+            :explored(false), scent(0) { }
 };
 
 class Map: public Persistent {
 public :
     int width, height;
+    unsigned int currentScentValue;
 
     Map(int width, int height);
 
@@ -38,6 +40,8 @@ public :
     bool isInFov(int x, int y) const;
 
     bool isExplored(int x, int y) const;
+
+    unsigned int getScent(int x, int y) const;
 
     bool canWalk(int x, int y) const;
 

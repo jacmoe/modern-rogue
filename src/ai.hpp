@@ -19,6 +19,9 @@
 #include "fwd.hpp"
 #include "persistent.hpp"
 
+// after 20 turns, the monster cannot smell the scent anymore
+static const int SCENT_THRESHOLD=50;
+
 class Ai: public Persistent {
 public :
     virtual void update(Actor* owner)=0;
@@ -42,7 +45,6 @@ public :
     void save(TCODZip& zip) override;
 
 protected :
-    int moveCount;
 
     void moveOrAttack(Actor* owner, int targetx, int targety);
 };

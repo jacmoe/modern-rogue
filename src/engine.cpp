@@ -67,6 +67,7 @@ void Engine::update()
     }
     player->update();
     if (gameStatus==NEW_TURN) {
+        map->currentScentValue++;
         for (auto actor : actors) {
             if (actor!=player) {
                 actor->update();
