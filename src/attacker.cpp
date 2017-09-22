@@ -14,7 +14,6 @@
 * Copyright 2017 Jacob Moen
 *
 **********************************************************************************************************/
-#include <stdio.h>
 #include "main.hpp"
 
 Attacker::Attacker(float power)

@@ -14,11 +14,10 @@
 * Copyright 2017 Jacob Moen
 *
 **********************************************************************************************************/
-#include <math.h>
 #include "main.hpp"
 
 Engine::Engine(int screenWidth, int screenHeight)
-        :gameStatus(STARTUP), player(NULL), map(NULL), fovRadius(10),
+        :gameStatus(STARTUP), player(nullptr), map(nullptr), fovRadius(10),
          screenWidth(screenWidth), screenHeight(screenHeight), level(1)
 {
     TCODConsole::initRoot(screenWidth, screenHeight, "libtcod C++ tutorial", false);
@@ -68,9 +67,7 @@ void Engine::update()
     }
     player->update();
     if (gameStatus==NEW_TURN) {
-        for (Actor** iterator = actors.begin(); iterator!=actors.end();
-             iterator++) {
-            Actor* actor = *iterator;
+        for (auto actor : actors) {
             if (actor!=player) {
                 actor->update();
             }
@@ -84,9 +81,7 @@ void Engine::render()
     // draw the map
     map->render();
     // draw the actors
-    for (Actor** iterator = actors.begin();
-         iterator!=actors.end(); iterator++) {
-        Actor* actor = *iterator;
+    for (auto actor : actors) {
         if (actor!=player
                 && ((!actor->fovOnly && map->isExplored(actor->x, actor->y))
                         || map->isInFov(actor->x, actor->y))) {
@@ -106,24 +101,20 @@ void Engine::sendToBack(Actor* actor)
 
 Actor* Engine::getActor(int x, int y) const
 {
-    for (Actor** iterator = actors.begin();
-         iterator!=actors.end(); iterator++) {
-        Actor* actor = *iterator;
+    for (auto actor : actors) {
         if (actor->x==x && actor->y==y && actor->destructible
                 && !actor->destructible->isDead()) {
             return actor;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 Actor* Engine::getClosestMonster(int x, int y, float range) const
 {
-    Actor* closest = NULL;
+    Actor* closest = nullptr;
     float bestDistance = 1E6f;
-    for (Actor** iterator = actors.begin();
-         iterator!=actors.end(); iterator++) {
-        Actor* actor = *iterator;
+    for (auto actor : actors) {
         if (actor!=player && actor->destructible
                 && !actor->destructible->isDead()) {
             float distance = actor->getDistance(x, y);

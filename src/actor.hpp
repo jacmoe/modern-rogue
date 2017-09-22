@@ -43,7 +43,7 @@ public :
 
     float getDistance(int cx, int cy) const;
 
-    void load(TCODZip& zip);
+    void load(TCODZip& zip) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 };

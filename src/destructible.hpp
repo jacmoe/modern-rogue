@@ -37,9 +37,9 @@ public :
 
     virtual void die(Actor* owner);
 
-    void load(TCODZip& zip);
+    void load(TCODZip& zip) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 
     static Destructible* create(TCODZip& zip);
 
@@ -53,16 +53,16 @@ class MonsterDestructible: public Destructible {
 public :
     MonsterDestructible(float maxHp, float defense, const char* corpseName, int xp);
 
-    void die(Actor* owner);
+    void die(Actor* owner) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 };
 
 class PlayerDestructible: public Destructible {
 public :
     PlayerDestructible(float maxHp, float defense, const char* corpseName);
 
-    void die(Actor* owner);
+    void die(Actor* owner) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 };

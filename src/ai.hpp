@@ -35,11 +35,11 @@ class MonsterAi: public Ai {
 public :
     MonsterAi();
 
-    void update(Actor* owner);
+    void update(Actor* owner) override;
 
-    void load(TCODZip& zip);
+    void load(TCODZip& zip) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 
 protected :
     int moveCount;
@@ -51,11 +51,11 @@ class ConfusedMonsterAi: public Ai {
 public :
     ConfusedMonsterAi(int nbTurns, Ai* oldAi);
 
-    void update(Actor* owner);
+    void update(Actor* owner) override;
 
-    void load(TCODZip& zip);
+    void load(TCODZip& zip) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 
 protected :
     int nbTurns;
@@ -70,11 +70,11 @@ public :
 
     int getNextLevelXp();
 
-    void update(Actor* owner);
+    void update(Actor* owner) override;
 
-    void load(TCODZip& zip);
+    void load(TCODZip& zip) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 
 protected :
     bool moveOrAttack(Actor* owner, int targetx, int targety);

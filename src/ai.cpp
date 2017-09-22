@@ -14,8 +14,7 @@
 * Copyright 2017 Jacob Moen
 *
 **********************************************************************************************************/
-#include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include "main.hpp"
 
 // how many turns the monster chases the player
@@ -52,8 +51,8 @@ void MonsterAi::moveOrAttack(Actor* owner, int targetx, int targety)
     int stepdy = (dy>0 ? 1 : -1);
     float distance = sqrtf(dx*dx+dy*dy);
     if (distance>=2) {
-        dx = (int) (round(dx/distance));
-        dy = (int) (round(dy/distance));
+        dx = (int) (std::round(dx/distance));
+        dy = (int) (std::round(dy/distance));
         if (engine.map->canWalk(owner->x+dx, owner->y+dy)) {
             owner->x += dx;
             owner->y += dy;
@@ -184,9 +183,7 @@ bool PlayerAi::moveOrAttack(Actor* owner, int targetx, int targety)
 {
     if (engine.map->isWall(targetx, targety)) return false;
     // look for living actors to attack
-    for (Actor** iterator = engine.actors.begin();
-         iterator!=engine.actors.end(); iterator++) {
-        Actor* actor = *iterator;
+    for (auto actor : engine.actors) {
         if (actor->destructible && !actor->destructible->isDead()
                 && actor->x==targetx && actor->y==targety) {
             owner->attacker->attack(owner, actor);
@@ -263,6 +260,7 @@ void PlayerAi::handleActionKey(Actor* owner, int ascii)
             engine.gui->message(TCODColor::lightGrey, "There are no stairs here.");
         }
         break;
+    default:break;
     }
 }
 
@@ -281,9 +279,7 @@ Actor* PlayerAi::choseFromInventory(Actor* owner)
     con.setDefaultForeground(TCODColor::white);
     int shortcut = 'a';
     int y = 1;
-    for (Actor** it = owner->container->inventory.begin();
-         it!=owner->container->inventory.end(); it++) {
-        Actor* actor = *it;
+    for (auto actor : owner->container->inventory) {
         con.print(2, y, "(%c) %s", shortcut, actor->name);
         y++;
         shortcut++;
@@ -296,13 +292,13 @@ Actor* PlayerAi::choseFromInventory(Actor* owner)
     TCODConsole::flush();
 
     // wait for a key press
-    TCOD_key_t key;
-    TCODSystem::waitForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL, true);
+    TCOD_key_t key{};
+    TCODSystem::waitForEvent(TCOD_EVENT_KEY_PRESS, &key, nullptr, true);
     if (key.vk==TCODK_CHAR) {
         int actorIndex = key.c-'a';
         if (actorIndex>=0 && actorIndex<owner->container->inventory.size()) {
             return owner->container->inventory.get(actorIndex);
         }
     }
-    return NULL;
+    return nullptr;
 }

@@ -14,8 +14,8 @@
 * Copyright 2017 Jacob Moen
 *
 **********************************************************************************************************/
-#include <stdio.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdarg>
 #include "main.hpp"
 
 static const int PANEL_HEIGHT = 7;
@@ -51,7 +51,7 @@ void Gui::render()
             TCODColor::lightRed, TCODColor::darkerRed);
 
     // draw the XP bar
-    PlayerAi* ai = (PlayerAi*) engine.player->ai;
+    auto* ai = (PlayerAi*) engine.player->ai;
     char xpTxt[128];
     sprintf(xpTxt, "XP(%d)", ai->xpLevel);
     renderBar(1, 5, BAR_WIDTH, xpTxt, engine.player->destructible->xp,
@@ -61,8 +61,7 @@ void Gui::render()
     // draw the message log
     int y = 1;
     float colorCoef = 0.4f;
-    for (Message** it = log.begin(); it!=log.end(); it++) {
-        Message* message = *it;
+    for (auto message : log) {
         con->setDefaultForeground(message->col*colorCoef);
         con->print(MSG_X, y, message->text);
         y++;
@@ -91,7 +90,7 @@ void Gui::renderBar(int x, int y, int width, const char* name,
     con->setDefaultBackground(backColor);
     con->rect(x, y, width, 1, false, TCOD_BKGND_SET);
 
-    int barWidth = (int) (value/maxValue*width);
+    auto barWidth = (int) (value/maxValue*width);
     if (barWidth>0) {
         // draw the bar
         con->setDefaultBackground(barColor);
@@ -166,7 +165,7 @@ void Gui::message(const TCODColor& col, const char* text, ...)
         }
 
         // add a new message to the log
-        Message* msg = new Message(lineBegin, col);
+        auto* msg = new Message(lineBegin, col);
         log.push(msg);
 
         // go to next line
@@ -187,7 +186,7 @@ void Menu::clear()
 
 void Menu::addItem(MenuItemCode code, const char* label)
 {
-    MenuItem* item = new MenuItem();
+    auto* item = new MenuItem();
     item->code = code;
     item->label = label;
     items.push(item);
@@ -218,21 +217,21 @@ Menu::MenuItemCode Menu::pick(DisplayMode mode)
 
     while (!TCODConsole::isWindowClosed()) {
         int currentItem = 0;
-        for (MenuItem** it = items.begin(); it!=items.end(); it++) {
+        for (auto& item : items) {
             if (currentItem==selectedItem) {
                 TCODConsole::root->setDefaultForeground(TCODColor::lighterOrange);
             }
             else {
                 TCODConsole::root->setDefaultForeground(TCODColor::lightGrey);
             }
-            TCODConsole::root->print(menux, menuy+currentItem*3, (*it)->label);
+            TCODConsole::root->print(menux, menuy+currentItem*3, item->label);
             currentItem++;
         }
         TCODConsole::flush();
 
         // check key presses
-        TCOD_key_t key;
-        TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL);
+        TCOD_key_t key{};
+        TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &key, nullptr);
         switch (key.vk) {
         case TCODK_UP :selectedItem--;
             if (selectedItem<0) {

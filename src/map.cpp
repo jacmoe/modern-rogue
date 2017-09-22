@@ -25,17 +25,17 @@ class BspListener: public ITCODBspCallback {
 private :
     Map& map; // a map to dig
     int roomNum; // room number
-    int lastx, lasty; // center of the last room
+    int lastx{}, lasty{}; // center of the last room
 public :
-    BspListener(Map& map)
+    explicit BspListener(Map& map)
             :map(map), roomNum(0) { }
 
-    bool visitNode(TCODBsp* node, void* userData)
+    bool visitNode(TCODBsp* node, void* userData) override
     {
         if (node->isLeaf()) {
             int x, y, w, h;
             // dig a room
-            bool withActors = (bool) userData;
+            auto withActors = (bool) userData;
             w = map.rng->getInt(ROOM_MIN_SIZE, node->w-2);
             h = map.rng->getInt(ROOM_MIN_SIZE, node->h-2);
             x = map.rng->getInt(node->x+1, node->x+node->w-w-1);
@@ -101,7 +101,7 @@ void Map::addMonster(int x, int y)
     TCODRandom* rng = TCODRandom::getInstance();
     if (rng->getInt(0, 100)<80) {
         // create an orc
-        Actor* orc = new Actor(x, y, 'o', "orc",
+        auto* orc = new Actor(x, y, 'o', "orc",
                 TCODColor::desaturatedGreen);
         orc->destructible = new MonsterDestructible(10, 0, "dead orc", 35);
         orc->attacker = new Attacker(3);
@@ -110,7 +110,7 @@ void Map::addMonster(int x, int y)
     }
     else {
         // create a troll
-        Actor* troll = new Actor(x, y, 'T', "troll",
+        auto* troll = new Actor(x, y, 'T', "troll",
                 TCODColor::darkerGreen);
         troll->destructible = new MonsterDestructible(16, 1, "troll carcass", 100);
         troll->attacker = new Attacker(4);
@@ -125,7 +125,7 @@ void Map::addItem(int x, int y)
     int dice = rng->getInt(0, 100);
     if (dice<70) {
         // create a health potion
-        Actor* healthPotion = new Actor(x, y, '!', "health potion",
+        auto* healthPotion = new Actor(x, y, '!', "health potion",
                 TCODColor::violet);
         healthPotion->blocks = false;
         healthPotion->pickable = new Healer(4);
@@ -133,7 +133,7 @@ void Map::addItem(int x, int y)
     }
     else if (dice<70+10) {
         // create a scroll of lightning bolt
-        Actor* scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt",
+        auto* scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt",
                 TCODColor::lightYellow);
         scrollOfLightningBolt->blocks = false;
         scrollOfLightningBolt->pickable = new LightningBolt(5, 20);
@@ -141,7 +141,7 @@ void Map::addItem(int x, int y)
     }
     else if (dice<70+10+10) {
         // create a scroll of fireball
-        Actor* scrollOfFireball = new Actor(x, y, '#', "scroll of fireball",
+        auto* scrollOfFireball = new Actor(x, y, '#', "scroll of fireball",
                 TCODColor::lightYellow);
         scrollOfFireball->blocks = false;
         scrollOfFireball->pickable = new Fireball(3, 12);
@@ -149,7 +149,7 @@ void Map::addItem(int x, int y)
     }
     else {
         // create a scroll of confusion
-        Actor* scrollOfConfusion = new Actor(x, y, '#', "scroll of confusion",
+        auto* scrollOfConfusion = new Actor(x, y, '#', "scroll of confusion",
                 TCODColor::lightYellow);
         scrollOfConfusion->blocks = false;
         scrollOfConfusion->pickable = new Confuser(10, 8);
@@ -207,9 +207,7 @@ bool Map::canWalk(int x, int y) const
         // this is a wall
         return false;
     }
-    for (Actor** iterator = engine.actors.begin();
-         iterator!=engine.actors.end(); iterator++) {
-        Actor* actor = *iterator;
+    for (auto actor : engine.actors) {
         if (actor->blocks && actor->x==x && actor->y==y) {
             // there is a blocking actor here. cannot walk
             return false;

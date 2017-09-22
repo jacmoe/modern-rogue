@@ -39,13 +39,13 @@ class Healer: public Pickable {
 public :
     float amount; // how many hp
 
-    Healer(float amount);
+    explicit Healer(float amount);
 
-    bool use(Actor* owner, Actor* wearer);
+    bool use(Actor* owner, Actor* wearer) override;
 
-    void load(TCODZip& zip);
+    void load(TCODZip& zip) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 };
 
 class LightningBolt: public Pickable {
@@ -54,11 +54,11 @@ public :
 
     LightningBolt(float range, float damage);
 
-    bool use(Actor* owner, Actor* wearer);
+    bool use(Actor* owner, Actor* wearer) override;
 
-    void load(TCODZip& zip);
+    void load(TCODZip& zip) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 };
 
 class Confuser: public Pickable {
@@ -68,19 +68,19 @@ public :
 
     Confuser(int nbTurns, float range);
 
-    bool use(Actor* owner, Actor* wearer);
+    bool use(Actor* owner, Actor* wearer) override;
 
-    void load(TCODZip& zip);
+    void load(TCODZip& zip) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 };
 
 class Fireball: public LightningBolt {
 public :
     Fireball(float range, float damage);
 
-    bool use(Actor* owner, Actor* wearer);
+    bool use(Actor* owner, Actor* wearer) override;
 
-    void save(TCODZip& zip);
+    void save(TCODZip& zip) override;
 };
 

@@ -21,13 +21,13 @@ void Map::load(TCODZip& zip)
     seed = zip.getInt();
     init(false);
     for (int i = 0; i<width*height; i++) {
-        tiles[i].explored = zip.getInt();
+        tiles[i].explored = static_cast<bool>(zip.getInt());
     }
 }
 
 void Map::save(TCODZip& zip)
 {
-    zip.putInt(seed);
+    zip.putInt(static_cast<int>(seed));
     for (int i = 0; i<width*height; i++) {
         zip.putInt(tiles[i].explored);
     }
@@ -40,13 +40,13 @@ void Actor::load(TCODZip& zip)
     ch = zip.getInt();
     col = zip.getColor();
     name = strdup(zip.getString());
-    blocks = zip.getInt();
-    fovOnly = zip.getInt();
-    bool hasAttacker = zip.getInt();
-    bool hasDestructible = zip.getInt();
-    bool hasAi = zip.getInt();
-    bool hasPickable = zip.getInt();
-    bool hasContainer = zip.getInt();
+    blocks = static_cast<bool>(zip.getInt());
+    fovOnly = static_cast<bool>(zip.getInt());
+    auto hasAttacker = static_cast<bool>(zip.getInt());
+    auto hasDestructible = static_cast<bool>(zip.getInt());
+    auto hasAi = static_cast<bool>(zip.getInt());
+    auto hasPickable = static_cast<bool>(zip.getInt());
+    auto hasContainer = static_cast<bool>(zip.getInt());
     if (hasAttacker) {
         attacker = new Attacker(0.0f);
         attacker->load(zip);
@@ -75,11 +75,11 @@ void Actor::save(TCODZip& zip)
     zip.putString(name);
     zip.putInt(blocks);
     zip.putInt(fovOnly);
-    zip.putInt(attacker!=NULL);
-    zip.putInt(destructible!=NULL);
-    zip.putInt(ai!=NULL);
-    zip.putInt(pickable!=NULL);
-    zip.putInt(container!=NULL);
+    zip.putInt(attacker!=nullptr);
+    zip.putInt(destructible!=nullptr);
+    zip.putInt(ai!=nullptr);
+    zip.putInt(pickable!=nullptr);
+    zip.putInt(container!=nullptr);
     if (attacker) attacker->save(zip);
     if (destructible) destructible->save(zip);
     if (ai) ai->save(zip);
@@ -92,7 +92,7 @@ void Container::load(TCODZip& zip)
     size = zip.getInt();
     int nbActors = zip.getInt();
     while (nbActors>0) {
-        Actor* actor = new Actor(0, 0, 0, NULL, TCODColor::white);
+        auto* actor = new Actor(0, 0, 0, nullptr, TCODColor::white);
         actor->load(zip);
         inventory.push(actor);
         nbActors--;
@@ -103,8 +103,8 @@ void Container::save(TCODZip& zip)
 {
     zip.putInt(size);
     zip.putInt(inventory.size());
-    for (Actor** it = inventory.begin(); it!=inventory.end(); it++) {
-        (*it)->save(zip);
+    for (auto& it : inventory) {
+        it->save(zip);
     }
 }
 
@@ -140,12 +140,12 @@ void MonsterDestructible::save(TCODZip& zip)
 
 Destructible* Destructible::create(TCODZip& zip)
 {
-    DestructibleType type = (DestructibleType) zip.getInt();
-    Destructible* destructible = NULL;
+    auto type = (DestructibleType) zip.getInt();
+    Destructible* destructible = nullptr;
     switch (type) {
-    case MONSTER :destructible = new MonsterDestructible(0, 0, NULL, 0);
+    case MONSTER :destructible = new MonsterDestructible(0, 0, nullptr, 0);
         break;
-    case PLAYER :destructible = new PlayerDestructible(0, 0, NULL);
+    case PLAYER :destructible = new PlayerDestructible(0, 0, nullptr);
         break;
     }
     destructible->load(zip);
@@ -199,14 +199,14 @@ void PlayerAi::save(TCODZip& zip)
 
 Ai* Ai::create(TCODZip& zip)
 {
-    AiType type = (AiType) zip.getInt();
-    Ai* ai = NULL;
+    auto type = (AiType) zip.getInt();
+    Ai* ai = nullptr;
     switch (type) {
     case PLAYER :ai = new PlayerAi();
         break;
     case MONSTER :ai = new MonsterAi();
         break;
-    case CONFUSED_MONSTER :ai = new ConfusedMonsterAi(0, NULL);
+    case CONFUSED_MONSTER :ai = new ConfusedMonsterAi(0, nullptr);
         break;
     }
     ai->load(zip);
@@ -259,8 +259,8 @@ void Fireball::save(TCODZip& zip)
 
 Pickable* Pickable::create(TCODZip& zip)
 {
-    PickableType type = (PickableType) zip.getInt();
-    Pickable* pickable = NULL;
+    auto type = (PickableType) zip.getInt();
+    Pickable* pickable = nullptr;
     switch (type) {
     case HEALER :pickable = new Healer(0);
         break;
@@ -289,9 +289,9 @@ void Gui::load(TCODZip& zip)
 void Gui::save(TCODZip& zip)
 {
     zip.putInt(log.size());
-    for (Message** it = log.begin(); it!=log.end(); it++) {
-        zip.putString((*it)->text);
-        zip.putColor(&(*it)->col);
+    for (auto& it : log) {
+        zip.putString(it->text);
+        zip.putColor(&it->col);
     }
 }
 
@@ -332,17 +332,17 @@ void Engine::load(bool pause)
         map = new Map(width, height);
         map->load(zip);
         // then the player
-        player = new Actor(0, 0, 0, NULL, TCODColor::white);
+        player = new Actor(0, 0, 0, nullptr, TCODColor::white);
         actors.push(player);
         player->load(zip);
         // the stairs
-        stairs = new Actor(0, 0, 0, NULL, TCODColor::white);
+        stairs = new Actor(0, 0, 0, nullptr, TCODColor::white);
         stairs->load(zip);
         actors.push(stairs);
         // then all other actors
         int nbActors = zip.getInt();
         while (nbActors>0) {
-            Actor* actor = new Actor(0, 0, 0, NULL, TCODColor::white);
+            auto* actor = new Actor(0, 0, 0, nullptr, TCODColor::white);
             actor->load(zip);
             actors.push(actor);
             nbActors--;
@@ -373,9 +373,9 @@ void Engine::save()
         stairs->save(zip);
         // then all the other actors
         zip.putInt(actors.size()-2);
-        for (Actor** it = actors.begin(); it!=actors.end(); it++) {
-            if (*it!=player && *it!=stairs) {
-                (*it)->save(zip);
+        for (auto& actor : actors) {
+            if (actor!=player && actor!=stairs) {
+                actor->save(zip);
             }
         }
         // finally the message log
