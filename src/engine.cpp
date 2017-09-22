@@ -17,13 +17,16 @@
 #include <math.h>
 #include "main.hpp"
 
-Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP), player(NULL), map(NULL), fovRadius(10),
-                                                    screenWidth(screenWidth), screenHeight(screenHeight), level(1) {
+Engine::Engine(int screenWidth, int screenHeight)
+        :gameStatus(STARTUP), player(NULL), map(NULL), fovRadius(10),
+         screenWidth(screenWidth), screenHeight(screenHeight), level(1)
+{
     TCODConsole::initRoot(screenWidth, screenHeight, "libtcod C++ tutorial", false);
     gui = new Gui();
 }
 
-void Engine::init() {
+void Engine::init()
+{
     player = new Actor(40, 25, '@', "player", TCODColor::white);
     player->destructible = new PlayerDestructible(30, 2, "your cadaver");
     player->attacker = new Attacker(5);
@@ -37,52 +40,56 @@ void Engine::init() {
     map = new Map(80, 43);
     map->init(true);
     gui->message(TCODColor::red,
-                 "Welcome stranger!\nPrepare to perish in the Tombs of the Ancient Kings.");
+            "Welcome stranger!\nPrepare to perish in the Tombs of the Ancient Kings.");
     gameStatus = STARTUP;
 }
 
-Engine::~Engine() {
+Engine::~Engine()
+{
     term();
     delete gui;
 }
 
-void Engine::term() {
+void Engine::term()
+{
     actors.clearAndDelete();
     if (map) delete map;
     gui->clear();
 }
 
-void Engine::update() {
-    if (gameStatus == STARTUP) map->computeFov();
+void Engine::update()
+{
+    if (gameStatus==STARTUP) map->computeFov();
     gameStatus = IDLE;
     TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
-    if (lastKey.vk == TCODK_ESCAPE) {
+    if (lastKey.vk==TCODK_ESCAPE) {
         save();
         load(true);
     }
     player->update();
-    if (gameStatus == NEW_TURN) {
-        for (Actor **iterator = actors.begin(); iterator != actors.end();
+    if (gameStatus==NEW_TURN) {
+        for (Actor** iterator = actors.begin(); iterator!=actors.end();
              iterator++) {
-            Actor *actor = *iterator;
-            if (actor != player) {
+            Actor* actor = *iterator;
+            if (actor!=player) {
                 actor->update();
             }
         }
     }
 }
 
-void Engine::render() {
+void Engine::render()
+{
     TCODConsole::root->clear();
     // draw the map
     map->render();
     // draw the actors
-    for (Actor **iterator = actors.begin();
-         iterator != actors.end(); iterator++) {
-        Actor *actor = *iterator;
-        if (actor != player
-            && ((!actor->fovOnly && map->isExplored(actor->x, actor->y))
-                || map->isInFov(actor->x, actor->y))) {
+    for (Actor** iterator = actors.begin();
+         iterator!=actors.end(); iterator++) {
+        Actor* actor = *iterator;
+        if (actor!=player
+                && ((!actor->fovOnly && map->isExplored(actor->x, actor->y))
+                        || map->isInFov(actor->x, actor->y))) {
             actor->render();
         }
     }
@@ -91,33 +98,36 @@ void Engine::render() {
     gui->render();
 }
 
-void Engine::sendToBack(Actor *actor) {
+void Engine::sendToBack(Actor* actor)
+{
     actors.remove(actor);
     actors.insertBefore(actor, 0);
 }
 
-Actor *Engine::getActor(int x, int y) const {
-    for (Actor **iterator = actors.begin();
-         iterator != actors.end(); iterator++) {
-        Actor *actor = *iterator;
-        if (actor->x == x && actor->y == y && actor->destructible
-            && !actor->destructible->isDead()) {
+Actor* Engine::getActor(int x, int y) const
+{
+    for (Actor** iterator = actors.begin();
+         iterator!=actors.end(); iterator++) {
+        Actor* actor = *iterator;
+        if (actor->x==x && actor->y==y && actor->destructible
+                && !actor->destructible->isDead()) {
             return actor;
         }
     }
     return NULL;
 }
 
-Actor *Engine::getClosestMonster(int x, int y, float range) const {
-    Actor *closest = NULL;
+Actor* Engine::getClosestMonster(int x, int y, float range) const
+{
+    Actor* closest = NULL;
     float bestDistance = 1E6f;
-    for (Actor **iterator = actors.begin();
-         iterator != actors.end(); iterator++) {
-        Actor *actor = *iterator;
-        if (actor != player && actor->destructible
-            && !actor->destructible->isDead()) {
+    for (Actor** iterator = actors.begin();
+         iterator!=actors.end(); iterator++) {
+        Actor* actor = *iterator;
+        if (actor!=player && actor->destructible
+                && !actor->destructible->isDead()) {
             float distance = actor->getDistance(x, y);
-            if (distance < bestDistance && (distance <= range || range == 0.0f)) {
+            if (distance<bestDistance && (distance<=range || range==0.0f)) {
                 bestDistance = distance;
                 closest = actor;
             }
@@ -126,23 +136,24 @@ Actor *Engine::getClosestMonster(int x, int y, float range) const {
     return closest;
 }
 
-bool Engine::pickATile(int *x, int *y, float maxRange) {
+bool Engine::pickATile(int* x, int* y, float maxRange)
+{
     while (!TCODConsole::isWindowClosed()) {
         render();
         // highlight the possible range
-        for (int cx = 0; cx < map->width; cx++) {
-            for (int cy = 0; cy < map->height; cy++) {
+        for (int cx = 0; cx<map->width; cx++) {
+            for (int cy = 0; cy<map->height; cy++) {
                 if (map->isInFov(cx, cy)
-                    && (maxRange == 0 || player->getDistance(cx, cy) <= maxRange)) {
+                        && (maxRange==0 || player->getDistance(cx, cy)<=maxRange)) {
                     TCODColor col = TCODConsole::root->getCharBackground(cx, cy);
-                    col = col * 1.2f;
+                    col = col*1.2f;
                     TCODConsole::root->setCharBackground(cx, cy, col);
                 }
             }
         }
         TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
         if (map->isInFov(mouse.cx, mouse.cy)
-            && (maxRange == 0 || player->getDistance(mouse.cx, mouse.cy) <= maxRange)) {
+                && (maxRange==0 || player->getDistance(mouse.cx, mouse.cy)<=maxRange)) {
             TCODConsole::root->setCharBackground(mouse.cx, mouse.cy, TCODColor::white);
             if (mouse.lbutton_pressed) {
                 *x = mouse.cx;
@@ -159,15 +170,16 @@ bool Engine::pickATile(int *x, int *y, float maxRange) {
     return false;
 }
 
-void Engine::nextLevel() {
+void Engine::nextLevel()
+{
     level++;
     gui->message(TCODColor::lightViolet, "You take a moment to rest, and recover your strength.");
-    player->destructible->heal(player->destructible->maxHp / 2);
+    player->destructible->heal(player->destructible->maxHp/2);
     gui->message(TCODColor::red, "After a rare moment of peace, you descend\ndeeper into the heart of the dungeon...");
     delete map;
     // delete all actors but player and stairs
-    for (Actor **it = actors.begin(); it != actors.end(); it++) {
-        if (*it != player && *it != stairs) {
+    for (Actor** it = actors.begin(); it!=actors.end(); it++) {
+        if (*it!=player && *it!=stairs) {
             delete *it;
             it = actors.remove(it);
         }

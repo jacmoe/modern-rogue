@@ -18,7 +18,8 @@
 
 Engine engine(80, 50);
 
-int main() {
+int main()
+{
     engine.load();
     while (!TCODConsole::isWindowClosed()) {
         engine.update();

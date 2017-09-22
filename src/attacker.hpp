@@ -19,15 +19,15 @@
 #include "fwd.hpp"
 #include "persistent.hpp"
 
-class Attacker : public Persistent {
+class Attacker: public Persistent {
 public :
     float power; // hit points given
 
     Attacker(float power);
 
-    void attack(Actor *owner, Actor *target);
+    void attack(Actor* owner, Actor* target);
 
-    void load(TCODZip &zip);
+    void load(TCODZip& zip);
 
-    void save(TCODZip &zip);
+    void save(TCODZip& zip);
 };

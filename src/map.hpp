@@ -21,10 +21,11 @@
 
 struct Tile {
     bool explored; // has the player already seen this tile ?
-    Tile() : explored(false) {}
+    Tile()
+            :explored(false) { }
 };
 
-class Map : public Persistent {
+class Map: public Persistent {
 public :
     int width, height;
 
@@ -44,17 +45,17 @@ public :
 
     void render() const;
 
-    void load(TCODZip &zip);
+    void load(TCODZip& zip);
 
-    void save(TCODZip &zip);
+    void save(TCODZip& zip);
 
     void init(bool withActors);
 
 protected :
-    Tile *tiles;
-    TCODMap *map;
+    Tile* tiles;
+    TCODMap* map;
     long seed;
-    TCODRandom *rng;
+    TCODRandom* rng;
 
     friend class BspListener;
 

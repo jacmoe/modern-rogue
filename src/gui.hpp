@@ -38,19 +38,19 @@ public :
 
     void clear();
 
-    void addItem(MenuItemCode code, const char *label);
+    void addItem(MenuItemCode code, const char* label);
 
     MenuItemCode pick(DisplayMode mode = MAIN);
 
 protected :
     struct MenuItem {
         MenuItemCode code;
-        const char *label;
+        const char* label;
     };
-    TCODList<MenuItem *> items;
+    TCODList<MenuItem*> items;
 };
 
-class Gui : public Persistent {
+class Gui: public Persistent {
 public :
     Menu menu;
 
@@ -60,31 +60,31 @@ public :
 
     void render();
 
-    void message(const TCODColor &col, const char *text, ...);
+    void message(const TCODColor& col, const char* text, ...);
 
-    void load(TCODZip &zip);
+    void load(TCODZip& zip);
 
-    void save(TCODZip &zip);
+    void save(TCODZip& zip);
 
     void clear();
 
 protected :
-    TCODConsole *con;
+    TCODConsole* con;
 
     struct Message {
-        char *text;
+        char* text;
         TCODColor col;
 
-        Message(const char *text, const TCODColor &col);
+        Message(const char* text, const TCODColor& col);
 
         ~Message();
     };
 
-    TCODList<Message *> log;
+    TCODList<Message*> log;
 
-    void renderBar(int x, int y, int width, const char *name,
-                   float value, float maxValue, const TCODColor &barColor,
-                   const TCODColor &backColor);
+    void renderBar(int x, int y, int width, const char* name,
+            float value, float maxValue, const TCODColor& barColor,
+            const TCODColor& backColor);
 
     void renderMouseLook();
 };

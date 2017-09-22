@@ -16,22 +16,25 @@
 **********************************************************************************************************/
 #include "main.hpp"
 
-void Map::load(TCODZip &zip) {
+void Map::load(TCODZip& zip)
+{
     seed = zip.getInt();
     init(false);
-    for (int i = 0; i < width * height; i++) {
+    for (int i = 0; i<width*height; i++) {
         tiles[i].explored = zip.getInt();
     }
 }
 
-void Map::save(TCODZip &zip) {
+void Map::save(TCODZip& zip)
+{
     zip.putInt(seed);
-    for (int i = 0; i < width * height; i++) {
+    for (int i = 0; i<width*height; i++) {
         zip.putInt(tiles[i].explored);
     }
 }
 
-void Actor::load(TCODZip &zip) {
+void Actor::load(TCODZip& zip)
+{
     x = zip.getInt();
     y = zip.getInt();
     ch = zip.getInt();
@@ -63,7 +66,8 @@ void Actor::load(TCODZip &zip) {
     }
 }
 
-void Actor::save(TCODZip &zip) {
+void Actor::save(TCODZip& zip)
+{
     zip.putInt(x);
     zip.putInt(y);
     zip.putInt(ch);
@@ -71,11 +75,11 @@ void Actor::save(TCODZip &zip) {
     zip.putString(name);
     zip.putInt(blocks);
     zip.putInt(fovOnly);
-    zip.putInt(attacker != NULL);
-    zip.putInt(destructible != NULL);
-    zip.putInt(ai != NULL);
-    zip.putInt(pickable != NULL);
-    zip.putInt(container != NULL);
+    zip.putInt(attacker!=NULL);
+    zip.putInt(destructible!=NULL);
+    zip.putInt(ai!=NULL);
+    zip.putInt(pickable!=NULL);
+    zip.putInt(container!=NULL);
     if (attacker) attacker->save(zip);
     if (destructible) destructible->save(zip);
     if (ai) ai->save(zip);
@@ -83,26 +87,29 @@ void Actor::save(TCODZip &zip) {
     if (container) container->save(zip);
 }
 
-void Container::load(TCODZip &zip) {
+void Container::load(TCODZip& zip)
+{
     size = zip.getInt();
     int nbActors = zip.getInt();
-    while (nbActors > 0) {
-        Actor *actor = new Actor(0, 0, 0, NULL, TCODColor::white);
+    while (nbActors>0) {
+        Actor* actor = new Actor(0, 0, 0, NULL, TCODColor::white);
         actor->load(zip);
         inventory.push(actor);
         nbActors--;
     }
 }
 
-void Container::save(TCODZip &zip) {
+void Container::save(TCODZip& zip)
+{
     zip.putInt(size);
     zip.putInt(inventory.size());
-    for (Actor **it = inventory.begin(); it != inventory.end(); it++) {
+    for (Actor** it = inventory.begin(); it!=inventory.end(); it++) {
         (*it)->save(zip);
     }
 }
 
-void Destructible::load(TCODZip &zip) {
+void Destructible::load(TCODZip& zip)
+{
     maxHp = zip.getFloat();
     hp = zip.getFloat();
     defense = zip.getFloat();
@@ -110,7 +117,8 @@ void Destructible::load(TCODZip &zip) {
     xp = zip.getInt();
 }
 
-void Destructible::save(TCODZip &zip) {
+void Destructible::save(TCODZip& zip)
+{
     zip.putFloat(maxHp);
     zip.putFloat(hp);
     zip.putFloat(defense);
@@ -118,157 +126,170 @@ void Destructible::save(TCODZip &zip) {
     zip.putInt(xp);
 }
 
-void PlayerDestructible::save(TCODZip &zip) {
+void PlayerDestructible::save(TCODZip& zip)
+{
     zip.putInt(PLAYER);
     Destructible::save(zip);
 }
 
-void MonsterDestructible::save(TCODZip &zip) {
+void MonsterDestructible::save(TCODZip& zip)
+{
     zip.putInt(MONSTER);
     Destructible::save(zip);
 }
 
-Destructible *Destructible::create(TCODZip &zip) {
+Destructible* Destructible::create(TCODZip& zip)
+{
     DestructibleType type = (DestructibleType) zip.getInt();
-    Destructible *destructible = NULL;
+    Destructible* destructible = NULL;
     switch (type) {
-        case MONSTER :
-            destructible = new MonsterDestructible(0, 0, NULL, 0);
-            break;
-        case PLAYER :
-            destructible = new PlayerDestructible(0, 0, NULL);
-            break;
+    case MONSTER :destructible = new MonsterDestructible(0, 0, NULL, 0);
+        break;
+    case PLAYER :destructible = new PlayerDestructible(0, 0, NULL);
+        break;
     }
     destructible->load(zip);
     return destructible;
 }
 
-void Attacker::load(TCODZip &zip) {
+void Attacker::load(TCODZip& zip)
+{
     power = zip.getFloat();
 }
 
-void Attacker::save(TCODZip &zip) {
+void Attacker::save(TCODZip& zip)
+{
     zip.putFloat(power);
 }
 
-void MonsterAi::load(TCODZip &zip) {
+void MonsterAi::load(TCODZip& zip)
+{
     moveCount = zip.getInt();
 }
 
-void MonsterAi::save(TCODZip &zip) {
+void MonsterAi::save(TCODZip& zip)
+{
     zip.putInt(MONSTER);
     zip.putInt(moveCount);
 }
 
-void ConfusedMonsterAi::load(TCODZip &zip) {
+void ConfusedMonsterAi::load(TCODZip& zip)
+{
     nbTurns = zip.getInt();
     oldAi = Ai::create(zip);
 }
 
-void ConfusedMonsterAi::save(TCODZip &zip) {
+void ConfusedMonsterAi::save(TCODZip& zip)
+{
     zip.putInt(CONFUSED_MONSTER);
     zip.putInt(nbTurns);
     oldAi->save(zip);
 }
 
-void PlayerAi::load(TCODZip &zip) {
+void PlayerAi::load(TCODZip& zip)
+{
     xpLevel = zip.getInt();
 }
 
-void PlayerAi::save(TCODZip &zip) {
+void PlayerAi::save(TCODZip& zip)
+{
     zip.putInt(PLAYER);
     zip.putInt(xpLevel);
 }
 
-Ai *Ai::create(TCODZip &zip) {
+Ai* Ai::create(TCODZip& zip)
+{
     AiType type = (AiType) zip.getInt();
-    Ai *ai = NULL;
+    Ai* ai = NULL;
     switch (type) {
-        case PLAYER :
-            ai = new PlayerAi();
-            break;
-        case MONSTER :
-            ai = new MonsterAi();
-            break;
-        case CONFUSED_MONSTER :
-            ai = new ConfusedMonsterAi(0, NULL);
-            break;
+    case PLAYER :ai = new PlayerAi();
+        break;
+    case MONSTER :ai = new MonsterAi();
+        break;
+    case CONFUSED_MONSTER :ai = new ConfusedMonsterAi(0, NULL);
+        break;
     }
     ai->load(zip);
     return ai;
 }
 
-void Healer::load(TCODZip &zip) {
+void Healer::load(TCODZip& zip)
+{
     amount = zip.getFloat();
 }
 
-void Healer::save(TCODZip &zip) {
+void Healer::save(TCODZip& zip)
+{
     zip.putInt(HEALER);
     zip.putFloat(amount);
 }
 
-void LightningBolt::load(TCODZip &zip) {
+void LightningBolt::load(TCODZip& zip)
+{
     range = zip.getFloat();
     damage = zip.getFloat();
 }
 
-void LightningBolt::save(TCODZip &zip) {
+void LightningBolt::save(TCODZip& zip)
+{
     zip.putInt(LIGHTNING_BOLT);
     zip.putFloat(range);
     zip.putFloat(damage);
 }
 
-void Confuser::load(TCODZip &zip) {
+void Confuser::load(TCODZip& zip)
+{
     nbTurns = zip.getInt();
     range = zip.getFloat();
 }
 
-void Confuser::save(TCODZip &zip) {
+void Confuser::save(TCODZip& zip)
+{
     zip.putInt(CONFUSER);
     zip.putInt(nbTurns);
     zip.putFloat(range);
 }
 
-void Fireball::save(TCODZip &zip) {
+void Fireball::save(TCODZip& zip)
+{
     zip.putInt(FIREBALL);
     zip.putFloat(range);
     zip.putFloat(damage);
 }
 
-Pickable *Pickable::create(TCODZip &zip) {
+Pickable* Pickable::create(TCODZip& zip)
+{
     PickableType type = (PickableType) zip.getInt();
-    Pickable *pickable = NULL;
+    Pickable* pickable = NULL;
     switch (type) {
-        case HEALER :
-            pickable = new Healer(0);
-            break;
-        case LIGHTNING_BOLT :
-            pickable = new LightningBolt(0, 0);
-            break;
-        case CONFUSER :
-            pickable = new Confuser(0, 0);
-            break;
-        case FIREBALL :
-            pickable = new Fireball(0, 0);
-            break;
+    case HEALER :pickable = new Healer(0);
+        break;
+    case LIGHTNING_BOLT :pickable = new LightningBolt(0, 0);
+        break;
+    case CONFUSER :pickable = new Confuser(0, 0);
+        break;
+    case FIREBALL :pickable = new Fireball(0, 0);
+        break;
     }
     pickable->load(zip);
     return pickable;
 }
 
-void Gui::load(TCODZip &zip) {
+void Gui::load(TCODZip& zip)
+{
     int nbMessages = zip.getInt();
-    while (nbMessages > 0) {
-        const char *text = zip.getString();
+    while (nbMessages>0) {
+        const char* text = zip.getString();
         TCODColor col = zip.getColor();
         message(col, text);
         nbMessages--;
     }
 }
 
-void Gui::save(TCODZip &zip) {
+void Gui::save(TCODZip& zip)
+{
     zip.putInt(log.size());
-    for (Message **it = log.begin(); it != log.end(); it++) {
+    for (Message** it = log.begin(); it!=log.end(); it++) {
         zip.putString((*it)->text);
         zip.putColor(&(*it)->col);
     }
@@ -276,14 +297,15 @@ void Gui::save(TCODZip &zip) {
 
 const int SAVEGAME_VERSION = 0x1100;
 
-void Engine::load(bool pause) {
+void Engine::load(bool pause)
+{
     TCODZip zip;
     engine.gui->menu.clear();
     engine.gui->menu.addItem(Menu::NEW_GAME, "New game");
     if (TCODSystem::fileExists("game.sav")) {
         zip.loadFromFile("game.sav");
         int version = zip.getInt();
-        if (version == SAVEGAME_VERSION) {
+        if (version==SAVEGAME_VERSION) {
             engine.gui->menu.addItem(Menu::CONTINUE, "Continue");
         }
     }
@@ -291,14 +313,16 @@ void Engine::load(bool pause) {
 
     Menu::MenuItemCode menuItem = engine.gui->menu.pick(
             pause ? Menu::PAUSE : Menu::MAIN);
-    if (menuItem == Menu::EXIT || menuItem == Menu::NONE) {
+    if (menuItem==Menu::EXIT || menuItem==Menu::NONE) {
         // Exit or window closed
         exit(0);
-    } else if (menuItem == Menu::NEW_GAME) {
+    }
+    else if (menuItem==Menu::NEW_GAME) {
         // New game
         engine.term();
         engine.init();
-    } else {
+    }
+    else {
         // continue a saved game
         engine.term();
         // load the map
@@ -317,8 +341,8 @@ void Engine::load(bool pause) {
         actors.push(stairs);
         // then all other actors
         int nbActors = zip.getInt();
-        while (nbActors > 0) {
-            Actor *actor = new Actor(0, 0, 0, NULL, TCODColor::white);
+        while (nbActors>0) {
+            Actor* actor = new Actor(0, 0, 0, NULL, TCODColor::white);
             actor->load(zip);
             actors.push(actor);
             nbActors--;
@@ -330,10 +354,12 @@ void Engine::load(bool pause) {
     }
 }
 
-void Engine::save() {
+void Engine::save()
+{
     if (player->destructible->isDead()) {
         TCODSystem::deleteFile("game.sav");
-    } else {
+    }
+    else {
         TCODZip zip;
         zip.putInt(SAVEGAME_VERSION);
         zip.putInt(level);
@@ -346,9 +372,9 @@ void Engine::save() {
         // then the stairs
         stairs->save(zip);
         // then all the other actors
-        zip.putInt(actors.size() - 2);
-        for (Actor **it = actors.begin(); it != actors.end(); it++) {
-            if (*it != player && *it != stairs) {
+        zip.putInt(actors.size()-2);
+        for (Actor** it = actors.begin(); it!=actors.end(); it++) {
+            if (*it!=player && *it!=stairs) {
                 (*it)->save(zip);
             }
         }

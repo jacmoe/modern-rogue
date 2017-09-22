@@ -19,20 +19,20 @@
 #include "fwd.hpp"
 #include "persistent.hpp"
 
-class Container : public Persistent {
+class Container: public Persistent {
 public :
     int size; // maximum number of actors. 0=unlimited
-    TCODList<Actor *> inventory;
+    TCODList<Actor*> inventory;
 
     Container(int size);
 
     ~Container();
 
-    bool add(Actor *actor);
+    bool add(Actor* actor);
 
-    void remove(Actor *actor);
+    void remove(Actor* actor);
 
-    void load(TCODZip &zip);
+    void load(TCODZip& zip);
 
-    void save(TCODZip &zip);
+    void save(TCODZip& zip);
 };

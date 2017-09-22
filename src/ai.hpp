@@ -19,12 +19,11 @@
 #include "fwd.hpp"
 #include "persistent.hpp"
 
-
-class Ai : public Persistent {
+class Ai: public Persistent {
 public :
-    virtual void update(Actor *owner)=0;
+    virtual void update(Actor* owner)=0;
 
-    static Ai *create(TCODZip &zip);
+    static Ai* create(TCODZip& zip);
 
 protected :
     enum AiType {
@@ -32,38 +31,38 @@ protected :
     };
 };
 
-class MonsterAi : public Ai {
+class MonsterAi: public Ai {
 public :
     MonsterAi();
 
-    void update(Actor *owner);
+    void update(Actor* owner);
 
-    void load(TCODZip &zip);
+    void load(TCODZip& zip);
 
-    void save(TCODZip &zip);
+    void save(TCODZip& zip);
 
 protected :
     int moveCount;
 
-    void moveOrAttack(Actor *owner, int targetx, int targety);
+    void moveOrAttack(Actor* owner, int targetx, int targety);
 };
 
-class ConfusedMonsterAi : public Ai {
+class ConfusedMonsterAi: public Ai {
 public :
-    ConfusedMonsterAi(int nbTurns, Ai *oldAi);
+    ConfusedMonsterAi(int nbTurns, Ai* oldAi);
 
-    void update(Actor *owner);
+    void update(Actor* owner);
 
-    void load(TCODZip &zip);
+    void load(TCODZip& zip);
 
-    void save(TCODZip &zip);
+    void save(TCODZip& zip);
 
 protected :
     int nbTurns;
-    Ai *oldAi;
+    Ai* oldAi;
 };
 
-class PlayerAi : public Ai {
+class PlayerAi: public Ai {
 public :
     int xpLevel;
 
@@ -71,16 +70,16 @@ public :
 
     int getNextLevelXp();
 
-    void update(Actor *owner);
+    void update(Actor* owner);
 
-    void load(TCODZip &zip);
+    void load(TCODZip& zip);
 
-    void save(TCODZip &zip);
+    void save(TCODZip& zip);
 
 protected :
-    bool moveOrAttack(Actor *owner, int targetx, int targety);
+    bool moveOrAttack(Actor* owner, int targetx, int targety);
 
-    void handleActionKey(Actor *owner, int ascii);
+    void handleActionKey(Actor* owner, int ascii);
 
-    Actor *choseFromInventory(Actor *owner);
+    Actor* choseFromInventory(Actor* owner);
 };

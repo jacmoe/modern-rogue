@@ -16,15 +16,19 @@
 **********************************************************************************************************/
 #include "main.hpp"
 
-Container::Container(int size) : size(size) {
+Container::Container(int size)
+        :size(size)
+{
 }
 
-Container::~Container() {
+Container::~Container()
+{
     inventory.clearAndDelete();
 }
 
-bool Container::add(Actor *actor) {
-    if (size > 0 && inventory.size() >= size) {
+bool Container::add(Actor* actor)
+{
+    if (size>0 && inventory.size()>=size) {
         // inventory full
         return false;
     }
@@ -32,6 +36,7 @@ bool Container::add(Actor *actor) {
     return true;
 }
 
-void Container::remove(Actor *actor) {
+void Container::remove(Actor* actor)
+{
     inventory.remove(actor);
 }
