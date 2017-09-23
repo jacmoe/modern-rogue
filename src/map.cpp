@@ -126,34 +126,42 @@ void Map::addItem(int x, int y)
     int dice = rng->getInt(0, 100);
     if (dice<70) {
         // create a health potion
-        auto* healthPotion = new Actor(x, y, '!', "health potion",
+        Actor* healthPotion = new Actor(x, y, '!', "health potion",
                 TCODColor::violet);
         healthPotion->blocks = false;
-        healthPotion->pickable = new Healer(4);
+        healthPotion->pickable = new Pickable(NULL, new HealthEffect(4, NULL));
         engine.actors.push(healthPotion);
     }
     else if (dice<70+10) {
         // create a scroll of lightning bolt
-        auto* scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt",
+        Actor* scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt",
                 TCODColor::lightYellow);
         scrollOfLightningBolt->blocks = false;
-        scrollOfLightningBolt->pickable = new LightningBolt(5, 20);
+        scrollOfLightningBolt->pickable = new Pickable(
+                new TargetSelector(SelectorType::CLOSEST_MONSTER, 5),
+                new HealthEffect(-20, "A lighting bolt strikes the %s with a loud thunder!\n"
+                        "The damage is %g hit points."));
         engine.actors.push(scrollOfLightningBolt);
     }
     else if (dice<70+10+10) {
         // create a scroll of fireball
-        auto* scrollOfFireball = new Actor(x, y, '#', "scroll of fireball",
+        Actor* scrollOfFireball = new Actor(x, y, '#', "scroll of fireball",
                 TCODColor::lightYellow);
         scrollOfFireball->blocks = false;
-        scrollOfFireball->pickable = new Fireball(3, 12);
+        scrollOfFireball->pickable = new Pickable(
+                new TargetSelector(SelectorType::SELECTED_RANGE, 3),
+                new HealthEffect(-12, "The %s gets burned for %g hit points."));
         engine.actors.push(scrollOfFireball);
     }
     else {
         // create a scroll of confusion
-        auto* scrollOfConfusion = new Actor(x, y, '#', "scroll of confusion",
+        Actor* scrollOfConfusion = new Actor(x, y, '#', "scroll of confusion",
                 TCODColor::lightYellow);
         scrollOfConfusion->blocks = false;
-        scrollOfConfusion->pickable = new Confuser(10, 8);
+        scrollOfConfusion->pickable = new Pickable(
+                new TargetSelector(SelectorType::SELECTED_MONSTER, 5),
+                new AiChangeEffect(new ConfusedMonsterAi(10),
+                        "The eyes of the %s look vacant,\nas he starts to stumble around!"));
         engine.actors.push(scrollOfConfusion);
     }
 }

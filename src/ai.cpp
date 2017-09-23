@@ -17,90 +17,69 @@
 #include <cmath>
 #include "main.hpp"
 
+#include <stdio.h>
+#include <math.h>
+#include "main.hpp"
+
+// how many turns the monster chases the player
+// after losing his sight
+static const int TRACKING_TURNS = 3;
+
 MonsterAi::MonsterAi()
-= default;
+        :moveCount(0)
+{
+}
 
 void MonsterAi::update(Actor* owner)
 {
     if (owner->destructible && owner->destructible->isDead()) {
         return;
     }
-    moveOrAttack(owner, engine.player->x, engine.player->y);
+    if (engine.map->isInFov(owner->x, owner->y)) {
+        // we can see the player. move towards him
+        moveCount = TRACKING_TURNS;
+    }
+    else {
+        moveCount--;
+    }
+    if (moveCount>0) {
+        moveOrAttack(owner, engine.player->x, engine.player->y);
+    }
 }
 
 void MonsterAi::moveOrAttack(Actor* owner, int targetx, int targety)
 {
     int dx = targetx-owner->x;
     int dy = targety-owner->y;
+    int stepdx = (dx>0 ? 1 : -1);
+    int stepdy = (dy>0 ? 1 : -1);
     float distance = sqrtf(dx*dx+dy*dy);
-    if (distance<2) {
-        // at melee range. attack !
-        if (owner->attacker) {
-            owner->attacker->attack(owner, engine.player);
-        }
-        return;
-    }
-    else if (engine.map->isInFov(owner->x, owner->y)) {
-        // player in sight. go towards him !
-        dx = (int) (std::round(dx/distance));
-        dy = (int) (std::round(dy/distance));
+    if (distance>=2) {
+        dx = (int) (round(dx/distance));
+        dy = (int) (round(dy/distance));
         if (engine.map->canWalk(owner->x+dx, owner->y+dy)) {
             owner->x += dx;
             owner->y += dy;
-            return;
+        }
+        else if (engine.map->canWalk(owner->x+stepdx, owner->y)) {
+            owner->x += stepdx;
+        }
+        else if (engine.map->canWalk(owner->x, owner->y+stepdy)) {
+            owner->y += stepdy;
         }
     }
-    // player not visible. use scent tracking.
-    // find the adjacent cell with the highest scent level
-    unsigned int bestLevel = 0;
-    int bestCellIndex = -1;
-    static int tdx[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
-    static int tdy[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-    for (int i = 0; i<8; i++) {
-        int cellx = owner->x+tdx[i];
-        int celly = owner->y+tdy[i];
-        if (engine.map->canWalk(cellx, celly)) {
-            unsigned int cellScent = engine.map->getScent(cellx, celly);
-            if (cellScent>engine.map->currentScentValue-SCENT_THRESHOLD
-                    && cellScent>bestLevel) {
-                bestLevel = cellScent;
-                bestCellIndex = i;
-            }
-        }
-    }
-    if (bestCellIndex!=-1) {
-        // the monster smells the player. follow the scent
-        owner->x += tdx[bestCellIndex];
-        owner->y += tdy[bestCellIndex];
+    else if (owner->attacker) {
+        owner->attacker->attack(owner, engine.player);
     }
 }
 
-ConfusedMonsterAi::ConfusedMonsterAi(int nbTurns, Ai* oldAi)
-        :nbTurns(nbTurns), oldAi(oldAi)
+TemporaryAi::TemporaryAi(int nbTurns)
+        :nbTurns(nbTurns)
 {
 }
 
-void ConfusedMonsterAi::update(Actor* owner)
+void TemporaryAi::update(Actor* owner)
 {
-    if (!owner->destructible || !owner->destructible->isDead()) {
-        TCODRandom* rng = TCODRandom::getInstance();
-        int dx = rng->getInt(-1, 1);
-        int dy = rng->getInt(-1, 1);
-        if (dx!=0 || dy!=0) {
-            int destx = owner->x+dx;
-            int desty = owner->y+dy;
-            if (engine.map->canWalk(destx, desty)) {
-                owner->x = destx;
-                owner->y = desty;
-            }
-            else {
-                Actor* actor = engine.getActor(destx, desty);
-                if (actor) {
-                    owner->attacker->attack(owner, actor);
-                }
-            }
-        }
-    }
     nbTurns--;
     if (nbTurns==0) {
         owner->ai = oldAi;
@@ -108,74 +87,57 @@ void ConfusedMonsterAi::update(Actor* owner)
     }
 }
 
-PlayerAi::PlayerAi()
-        :xpLevel(1)
+void TemporaryAi::applyTo(Actor* actor)
+{
+    oldAi = actor->ai;
+    actor->ai = this;
+}
+
+ConfusedMonsterAi::ConfusedMonsterAi(int nbTurns)
+        :TemporaryAi(nbTurns)
 {
 }
 
-const int LEVEL_UP_BASE = 200;
-const int LEVEL_UP_FACTOR = 150;
-
-int PlayerAi::getNextLevelXp()
+void ConfusedMonsterAi::update(Actor* owner)
 {
-    return LEVEL_UP_BASE+xpLevel*LEVEL_UP_FACTOR;
+    TCODRandom* rng = TCODRandom::getInstance();
+    int dx = rng->getInt(-1, 1);
+    int dy = rng->getInt(-1, 1);
+    if (dx!=0 || dy!=0) {
+        int destx = owner->x+dx;
+        int desty = owner->y+dy;
+        if (engine.map->canWalk(destx, desty)) {
+            owner->x = destx;
+            owner->y = desty;
+        }
+        else {
+            Actor* actor = engine.getActor(destx, desty);
+            if (actor) {
+                owner->attacker->attack(owner, actor);
+            }
+        }
+    }
+    TemporaryAi::update(owner);
 }
 
 void PlayerAi::update(Actor* owner)
 {
-    int levelUpXp = getNextLevelXp();
-    if (owner->destructible->xp>=levelUpXp) {
-        xpLevel++;
-        owner->destructible->xp -= levelUpXp;
-        engine.gui->message(TCODColor::yellow, "Your battle skills grow stronger! You reached level %d", xpLevel);
-        engine.gui->menu.clear();
-        engine.gui->menu.addItem(Menu::CONSTITUTION, "Constitution (+20HP)");
-        engine.gui->menu.addItem(Menu::STRENGTH, "Strength (+1 attack)");
-        engine.gui->menu.addItem(Menu::AGILITY, "Agility (+1 defense)");
-        Menu::MenuItemCode menuItem = engine.gui->menu.pick(Menu::PAUSE);
-        switch (menuItem) {
-        case Menu::CONSTITUTION : owner->destructible->maxHp += 20;
-            owner->destructible->hp += 20;
-            break;
-        case Menu::STRENGTH : owner->attacker->power += 1;
-            break;
-        case Menu::AGILITY : owner->destructible->defense += 1;
-            break;
-        default: break;
-        }
-    }
     if (owner->destructible && owner->destructible->isDead()) {
         return;
     }
     int dx = 0, dy = 0;
     switch (engine.lastKey.vk) {
-    case TCODK_UP :
-    case TCODK_KP8 : dy = -1;
+    case TCODK_UP : dy = -1;
         break;
-    case TCODK_DOWN :
-    case TCODK_KP2 : dy = 1;
+    case TCODK_DOWN : dy = 1;
         break;
-    case TCODK_LEFT :
-    case TCODK_KP4 : dx = -1;
+    case TCODK_LEFT : dx = -1;
         break;
-    case TCODK_RIGHT :
-    case TCODK_KP6 : dx = 1;
-        break;
-    case TCODK_KP7 : dy = dx = -1;
-        break;
-    case TCODK_KP9 : dy = -1;
-        dx = 1;
-        break;
-    case TCODK_KP1 : dx = -1;
-        dy = 1;
-        break;
-    case TCODK_KP3 : dx = dy = 1;
-        break;
-    case TCODK_KP5 : engine.gameStatus = GameStatus::NEW_TURN;
+    case TCODK_RIGHT : dx = 1;
         break;
     case TCODK_CHAR : handleActionKey(owner, engine.lastKey.c);
         break;
-    default: break;
+    default:break;
     }
     if (dx!=0 || dy!=0) {
         engine.gameStatus = GameStatus::NEW_TURN;
@@ -189,7 +151,9 @@ bool PlayerAi::moveOrAttack(Actor* owner, int targetx, int targety)
 {
     if (engine.map->isWall(targetx, targety)) return false;
     // look for living actors to attack
-    for (auto actor : engine.actors) {
+    for (Actor** iterator = engine.actors.begin();
+         iterator!=engine.actors.end(); iterator++) {
+        Actor* actor = *iterator;
         if (actor->destructible && !actor->destructible->isDead()
                 && actor->x==targetx && actor->y==targety) {
             owner->attacker->attack(owner, actor);
@@ -258,15 +222,6 @@ void PlayerAi::handleActionKey(Actor* owner, int ascii)
         }
     }
         break;
-    case 'l' :
-        if (engine.stairs->x==owner->x && engine.stairs->y==owner->y) {
-            engine.nextLevel();
-        }
-        else {
-            engine.gui->message(TCODColor::lightGrey, "There are no stairs here.");
-        }
-        break;
-    default:break;
     }
 }
 
@@ -285,7 +240,9 @@ Actor* PlayerAi::choseFromInventory(Actor* owner)
     con.setDefaultForeground(TCODColor::white);
     int shortcut = 'a';
     int y = 1;
-    for (auto actor : owner->container->inventory) {
+    for (Actor** it = owner->container->inventory.begin();
+         it!=owner->container->inventory.end(); it++) {
+        Actor* actor = *it;
         con.print(2, y, "(%c) %s", shortcut, actor->name);
         y++;
         shortcut++;
@@ -298,13 +255,13 @@ Actor* PlayerAi::choseFromInventory(Actor* owner)
     TCODConsole::flush();
 
     // wait for a key press
-    TCOD_key_t key{};
-    TCODSystem::waitForEvent(TCOD_EVENT_KEY_PRESS, &key, nullptr, true);
+    TCOD_key_t key;
+    TCODSystem::waitForEvent(TCOD_EVENT_KEY_PRESS, &key, NULL, true);
     if (key.vk==TCODK_CHAR) {
         int actorIndex = key.c-'a';
         if (actorIndex>=0 && actorIndex<owner->container->inventory.size()) {
             return owner->container->inventory.get(actorIndex);
         }
     }
-    return nullptr;
+    return NULL;
 }

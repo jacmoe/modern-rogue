@@ -20,68 +20,45 @@
 #include "persistent.hpp"
 
 // after 20 turns, the monster cannot smell the scent anymore
-static const int SCENT_THRESHOLD=50;
+static const int SCENT_THRESHOLD = 50;
 
-class Ai: public Persistent {
+class Ai {
 public :
     virtual void update(Actor* owner)=0;
-
-    static Ai* create(TCODZip& zip);
-
-protected :
-    enum AiType {
-        MONSTER, CONFUSED_MONSTER, PLAYER
-    };
 };
 
-class MonsterAi: public Ai {
+class TemporaryAi: public Ai {
 public :
-    MonsterAi();
-
-    void update(Actor* owner) override;
-
-    void load(TCODZip& zip) override;
-
-    void save(TCODZip& zip) override;
-
-protected :
-
-    void moveOrAttack(Actor* owner, int targetx, int targety);
-};
-
-class ConfusedMonsterAi: public Ai {
-public :
-    ConfusedMonsterAi(int nbTurns, Ai* oldAi);
-
-    void update(Actor* owner) override;
-
-    void load(TCODZip& zip) override;
-
-    void save(TCODZip& zip) override;
-
+    TemporaryAi(int nbTurns);
+    void update(Actor* owner);
+    void applyTo(Actor* actor);
 protected :
     int nbTurns;
     Ai* oldAi;
 };
 
+class MonsterAi: public Ai {
+public :
+    MonsterAi();
+    void update(Actor* owner);
+protected :
+    int moveCount;
+
+    void moveOrAttack(Actor* owner, int targetx, int targety);
+};
+
+class ConfusedMonsterAi: public TemporaryAi {
+public :
+    ConfusedMonsterAi(int nbTurns);
+    void update(Actor* owner);
+};
+
 class PlayerAi: public Ai {
 public :
-    int xpLevel;
-
-    PlayerAi();
-
-    int getNextLevelXp();
-
-    void update(Actor* owner) override;
-
-    void load(TCODZip& zip) override;
-
-    void save(TCODZip& zip) override;
+    void update(Actor* owner);
 
 protected :
     bool moveOrAttack(Actor* owner, int targetx, int targety);
-
     void handleActionKey(Actor* owner, int ascii);
-
     Actor* choseFromInventory(Actor* owner);
 };

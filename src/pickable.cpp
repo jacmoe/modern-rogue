@@ -16,6 +16,118 @@
 **********************************************************************************************************/
 #include "main.hpp"
 
+#include "main.hpp"
+
+TargetSelector::TargetSelector(SelectorType type, float range)
+        :type(type), range(range)
+{
+}
+
+void TargetSelector::selectTargets(Actor* wearer, TCODList<Actor*>& list)
+{
+    switch (type) {
+    case SelectorType::CLOSEST_MONSTER : {
+        Actor* closestMonster = engine.getClosestMonster(wearer->x, wearer->y, range);
+        if (closestMonster) {
+            list.push(closestMonster);
+        }
+    }
+        break;
+    case SelectorType::SELECTED_MONSTER : {
+        int x, y;
+        engine.gui->message(TCODColor::cyan, "Left-click to select an enemy,\nor right-click to cancel.");
+        if (engine.pickATile(&x, &y, range)) {
+            Actor* actor = engine.getActor(x, y);
+            if (actor) {
+                list.push(actor);
+            }
+        }
+    }
+        break;
+    case SelectorType::WEARER_RANGE :
+        for (Actor** iterator = engine.actors.begin();
+             iterator!=engine.actors.end(); iterator++) {
+            Actor* actor = *iterator;
+            if (actor->destructible && !actor->destructible->isDead()
+                    && actor->getDistance(wearer->x, wearer->y)<=range) {
+                list.push(actor);
+            }
+        }
+        break;
+    case SelectorType::SELECTED_RANGE :int x, y;
+        engine.gui->message(TCODColor::cyan, "Left-click to select a tile,\nor right-click to cancel.");
+        if (engine.pickATile(&x, &y)) {
+            for (Actor** iterator = engine.actors.begin();
+                 iterator!=engine.actors.end(); iterator++) {
+                Actor* actor = *iterator;
+                if (actor->destructible && !actor->destructible->isDead()
+                        && actor->getDistance(x, y)<=range) {
+                    list.push(actor);
+                }
+            }
+        }
+        break;
+    }
+    if (list.isEmpty()) {
+        engine.gui->message(TCODColor::lightGrey, "No enemy is close enough");
+    }
+}
+
+HealthEffect::HealthEffect(float amount, const char* message)
+        :amount(amount), message(message)
+{
+}
+
+bool HealthEffect::applyTo(Actor* actor)
+{
+    if (!actor->destructible) return false;
+    if (amount>0) {
+        float pointsHealed = actor->destructible->heal(amount);
+        if (pointsHealed>0) {
+            if (message) {
+                engine.gui->message(TCODColor::lightGrey, message, actor->name, pointsHealed);
+            }
+            return true;
+        }
+    }
+    else {
+        if (message && -amount-actor->destructible->defense>0) {
+            engine.gui->message(TCODColor::lightGrey, message, actor->name,
+                    -amount-actor->destructible->defense);
+        }
+        if (actor->destructible->takeDamage(actor, -amount)>0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+AiChangeEffect::AiChangeEffect(TemporaryAi* newAi, const char* message)
+        :newAi(newAi), message(message)
+{
+}
+
+bool AiChangeEffect::applyTo(Actor* actor)
+{
+    newAi->applyTo(actor);
+    if (message) {
+        engine.gui->message(TCODColor::lightGrey, message, actor->name);
+    }
+    return true;
+}
+
+Pickable::Pickable(TargetSelector* selector, Effect* effect)
+        :
+        selector(selector), effect(effect)
+{
+}
+
+Pickable::~Pickable()
+{
+    if (selector) delete selector;
+    if (effect) delete effect;
+}
+
 bool Pickable::pick(Actor* owner, Actor* wearer)
 {
     if (wearer->container && wearer->container->add(owner)) {
@@ -39,100 +151,24 @@ void Pickable::drop(Actor* owner, Actor* wearer)
 
 bool Pickable::use(Actor* owner, Actor* wearer)
 {
-    if (wearer->container) {
-        wearer->container->remove(owner);
-        delete owner;
-        return true;
+    TCODList<Actor*> list;
+    if (selector) {
+        selector->selectTargets(wearer, list);
     }
-    return false;
-}
-
-Healer::Healer(float amount)
-        :amount(amount)
-{
-}
-
-bool Healer::use(Actor* owner, Actor* wearer)
-{
-    if (wearer->destructible) {
-        float amountHealed = wearer->destructible->heal(amount);
-        if (amountHealed>0) {
-            return Pickable::use(owner, wearer);
+    else {
+        list.push(wearer);
+    }
+    bool succeed = false;
+    for (Actor** it = list.begin(); it!=list.end(); it++) {
+        if (effect->applyTo(*it)) {
+            succeed = true;
         }
     }
-    return false;
-}
-
-LightningBolt::LightningBolt(float range, float damage)
-        :range(range), damage(damage)
-{
-}
-
-bool LightningBolt::use(Actor* owner, Actor* wearer)
-{
-    Actor* closestMonster = engine.getClosestMonster(wearer->x, wearer->y, range);
-    if (!closestMonster) {
-        engine.gui->message(TCODColor::lightGrey, "No enemy is close enough to strike.");
-        return false;
-    }
-    // hit closest monster for <damage> hit points
-    engine.gui->message(TCODColor::lightBlue,
-            "A lighting bolt strikes the %s with a loud thunder!\n"
-                    "The damage is %g hit points.",
-            closestMonster->name, damage);
-    closestMonster->destructible->takeDamage(closestMonster, damage);
-    return Pickable::use(owner, wearer);
-}
-
-Confuser::Confuser(int nbTurns, float range)
-        :nbTurns(nbTurns), range(range)
-{
-}
-
-bool Confuser::use(Actor* owner, Actor* wearer)
-{
-    engine.gui->message(TCODColor::cyan, "Left-click an enemy to confuse it,\nor right-click to cancel.");
-    int x, y;
-    if (!engine.pickATile(&x, &y, range)) {
-        return false;
-    }
-
-    Actor* actor = engine.getActor(x, y);
-    if (!actor) {
-        return false;
-    }
-    // confuse the monster for <nbTurns> turns
-    Ai* confusedAi = new ConfusedMonsterAi(nbTurns, actor->ai);
-    actor->ai = confusedAi;
-    engine.gui->message(TCODColor::lightGreen, "The eyes of the %s look vacant,\nas he starts to stumble around!",
-            actor->name);
-    return Pickable::use(owner, wearer);
-}
-
-Fireball::Fireball(float range, float damage)
-        :LightningBolt(range, damage)
-{
-}
-
-bool Fireball::use(Actor* owner, Actor* wearer)
-{
-    engine.gui->message(TCODColor::cyan, "Left-click a target tile for the fireball,\nor right-click to cancel.");
-    int x, y;
-    if (!engine.pickATile(&x, &y)) {
-        return false;
-    }
-    // burn everything in <range> (including player)
-    engine.gui->message(TCODColor::orange, "The fireball explodes, burning everything within %g tiles!", range);
-    for (Actor** iterator = engine.actors.begin();
-         iterator!=engine.actors.end(); iterator++) {
-        Actor* actor = *iterator;
-        if (actor->destructible && !actor->destructible->isDead()
-                && actor->getDistance(x, y)<=range) {
-            engine.gui->message(TCODColor::orange, "The %s gets burned for %g hit points.",
-                    actor->name, damage);
-            actor->destructible->takeDamage(actor, damage);
+    if (succeed) {
+        if (wearer->container) {
+            wearer->container->remove(owner);
+            delete owner;
         }
     }
-    return Pickable::use(owner, wearer);
+    return succeed;
 }
-

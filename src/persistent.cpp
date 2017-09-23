@@ -55,10 +55,10 @@ void Actor::load(TCODZip& zip)
         destructible = Destructible::create(zip);
     }
     if (hasAi) {
-        ai = Ai::create(zip);
+        //ai = Ai::create(zip);
     }
     if (hasPickable) {
-        pickable = Pickable::create(zip);
+        //pickable = Pickable::create(zip);
     }
     if (hasContainer) {
         container = new Container(0);
@@ -82,8 +82,8 @@ void Actor::save(TCODZip& zip)
     zip.putInt(container!=nullptr);
     if (attacker) attacker->save(zip);
     if (destructible) destructible->save(zip);
-    if (ai) ai->save(zip);
-    if (pickable) pickable->save(zip);
+    //FIXME if (ai) ai->save(zip);
+    //FIXME if (pickable) pickable->save(zip);
     if (container) container->save(zip);
 }
 
@@ -162,6 +162,7 @@ void Attacker::save(TCODZip& zip)
     zip.putFloat(power);
 }
 
+/*
 void MonsterAi::load(TCODZip& zip)
 {
 }
@@ -170,7 +171,8 @@ void MonsterAi::save(TCODZip& zip)
 {
     zip.putInt(MONSTER);
 }
-
+*/
+/*
 void ConfusedMonsterAi::load(TCODZip& zip)
 {
     nbTurns = zip.getInt();
@@ -272,7 +274,7 @@ Pickable* Pickable::create(TCODZip& zip)
     pickable->load(zip);
     return pickable;
 }
-
+*/
 void Gui::load(TCODZip& zip)
 {
     int nbMessages = zip.getInt();
