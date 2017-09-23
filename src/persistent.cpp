@@ -348,7 +348,7 @@ void Engine::load(bool pause)
         // finally the message log
         gui->load(zip);
         // to force FOV recomputation
-        gameStatus = STARTUP;
+        gameStatus = GameStatus::STARTUP;
     }
 }
 

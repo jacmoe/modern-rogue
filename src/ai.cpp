@@ -17,13 +17,8 @@
 #include <cmath>
 #include "main.hpp"
 
-// how many turns the monster chases the player
-// after losing his sight
-static const int TRACKING_TURNS = 3;
-
 MonsterAi::MonsterAi()
-{
-}
+= default;
 
 void MonsterAi::update(Actor* owner)
 {
@@ -47,8 +42,8 @@ void MonsterAi::moveOrAttack(Actor* owner, int targetx, int targety)
     }
     else if (engine.map->isInFov(owner->x, owner->y)) {
         // player in sight. go towards him !
-        dx = (int) (round(dx/distance));
-        dy = (int) (round(dy/distance));
+        dx = (int) (std::round(dx/distance));
+        dy = (int) (std::round(dy/distance));
         if (engine.map->canWalk(owner->x+dx, owner->y+dy)) {
             owner->x += dx;
             owner->y += dy;
@@ -176,14 +171,14 @@ void PlayerAi::update(Actor* owner)
         break;
     case TCODK_KP3 : dx = dy = 1;
         break;
-    case TCODK_KP5 : engine.gameStatus = Engine::NEW_TURN;
+    case TCODK_KP5 : engine.gameStatus = GameStatus::NEW_TURN;
         break;
     case TCODK_CHAR : handleActionKey(owner, engine.lastKey.c);
         break;
     default: break;
     }
     if (dx!=0 || dy!=0) {
-        engine.gameStatus = Engine::NEW_TURN;
+        engine.gameStatus = GameStatus::NEW_TURN;
         if (moveOrAttack(owner, owner->x+dx, owner->y+dy)) {
             engine.map->computeFov();
         }
@@ -225,7 +220,7 @@ void PlayerAi::handleActionKey(Actor* owner, int ascii)
         Actor* actor = choseFromInventory(owner);
         if (actor) {
             actor->pickable->drop(actor, owner);
-            engine.gameStatus = Engine::NEW_TURN;
+            engine.gameStatus = GameStatus::NEW_TURN;
         }
     }
         break;
@@ -251,7 +246,7 @@ void PlayerAi::handleActionKey(Actor* owner, int ascii)
         if (!found) {
             engine.gui->message(TCODColor::lightGrey, "There's nothing here that you can pick.");
         }
-        engine.gameStatus = Engine::NEW_TURN;
+        engine.gameStatus = GameStatus::NEW_TURN;
     }
         break;
     case 'i' : // display inventory
@@ -259,7 +254,7 @@ void PlayerAi::handleActionKey(Actor* owner, int ascii)
         Actor* actor = choseFromInventory(owner);
         if (actor) {
             actor->pickable->use(actor, owner);
-            engine.gameStatus = Engine::NEW_TURN;
+            engine.gameStatus = GameStatus::NEW_TURN;
         }
     }
         break;

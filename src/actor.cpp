@@ -14,7 +14,7 @@
 * Copyright 2017 Jacob Moen
 *
 **********************************************************************************************************/
-#include <math.h>
+#include <cmath>
 #include "main.hpp"
 
 Actor::Actor(int x, int y, int ch, const char* name,

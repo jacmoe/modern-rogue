@@ -17,7 +17,7 @@
 #include "main.hpp"
 
 Engine::Engine(int screenWidth, int screenHeight)
-        :gameStatus(STARTUP), player(nullptr), map(nullptr), fovRadius(10),
+        :gameStatus(GameStatus::STARTUP), player(nullptr), map(nullptr), fovRadius(10),
          screenWidth(screenWidth), screenHeight(screenHeight), level(1)
 {
     TCODConsole::initRoot(screenWidth, screenHeight, "libtcod C++ tutorial", false);
@@ -40,7 +40,7 @@ void Engine::init()
     map->init(true);
     gui->message(TCODColor::red,
             "Welcome stranger!\nPrepare to perish in the Tombs of the Ancient Kings.");
-    gameStatus = STARTUP;
+    gameStatus = GameStatus::STARTUP;
 }
 
 Engine::~Engine()
@@ -58,15 +58,15 @@ void Engine::term()
 
 void Engine::update()
 {
-    if (gameStatus==STARTUP) map->computeFov();
-    gameStatus = IDLE;
+    if (gameStatus==GameStatus::STARTUP) map->computeFov();
+    gameStatus = GameStatus::IDLE;
     TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
     if (lastKey.vk==TCODK_ESCAPE) {
         save();
         load(true);
     }
     player->update();
-    if (gameStatus==NEW_TURN) {
+    if (gameStatus==GameStatus::NEW_TURN) {
         map->currentScentValue++;
         for (auto actor : actors) {
             if (actor!=player) {
@@ -179,5 +179,5 @@ void Engine::nextLevel()
     // create a new map
     map = new Map(80, 43);
     map->init(true);
-    gameStatus = STARTUP;
+    gameStatus = GameStatus::STARTUP;
 }

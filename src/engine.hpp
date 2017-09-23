@@ -18,18 +18,19 @@
 
 #include "fwd.hpp"
 
+enum class GameStatus {
+    STARTUP,
+    IDLE,
+    NEW_TURN,
+    DEFEAT
+};
+
 class Engine {
 public :
-    enum GameStatus {
-        STARTUP,
-        IDLE,
-        NEW_TURN,
-        VICTORY,
-        DEFEAT
-    } gameStatus;
     TCOD_key_t lastKey;
     TCOD_mouse_t mouse;
     TCODList<Actor*> actors;
+    GameStatus gameStatus;
     Actor* player;
     Actor* stairs;
     Map* map;
